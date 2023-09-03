@@ -1,0 +1,24 @@
+{
+  "name": "xombi",
+  "version": "1.0.0",
+  "description": "An XMTP bot used to handle requests for Ombi",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/jrh3k5/xombi"
+  },
+  "keywords": [
+    "ombi",
+    "xmtp"
+  ],
+  "author": "Joshua Hyde",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@xmtp/bot-starter": "^1.1.4",
+    "dotenv": "^16.3.1"
+  }
+}
