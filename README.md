@@ -1,6 +1,6 @@
 # xombi
 
-xombi is an XMTP bot that allows you to interface with your [Ombi](https://ombi.io/) instance.
+xombi (pronounced "zombie") is an XMTP bot that allows you to interface with your [Ombi](https://ombi.io/) instance.
 
 This is intended to be ran internally within your network with visibility to your Ombi instance, allowing you to remotely search for and enqueue movies without exposing Ombi to the internet.
 
