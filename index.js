@@ -1,5 +1,6 @@
 import run from "@xmtp/bot-starter";
 import dotenv from 'dotenv';
+import { triageCurrentStep } from "./media/triage.js";
 
 dotenv.config();
 
@@ -20,10 +21,10 @@ run(async (context) => {
     return;
   }
 
-  // When someone sends your bot a message, you can get the DecodedMessage
-  // from the HandlerContext's `message` field
-  const messageBody = context.message.content;
-
-  // To reply, just call `reply` on the HandlerContext.
-  await context.reply(`ECHO: ${messageBody}`);
+  try {
+    await triageCurrentStep(context)();
+  } catch (err) {
+    console.log(err);
+    await context.reply("Sorry, I encountered an unexpected error while processing your message.");
+  }
 });
