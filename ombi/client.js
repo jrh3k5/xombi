@@ -23,8 +23,7 @@ class OmbiClient {
     }
 
     executeGet(address, url) {
-        console.log("getting URL", url);
-        const username = process.env["USERNAME_" + address]
+        const username = this.resolveUsername(address);
         if (!username) {
             return new Promise((_, reject) => {
                 reject(`Unable to resolve username for address ${address}`)
@@ -35,18 +34,48 @@ class OmbiClient {
             url: url,
             method: "GET",
             headers: {
-                // Without this, Axios chokes on the response
-                "Accept-Encoding": "gzip,deflate",
                 ApiKey: this.apiKey,
                 UserName: username
             }
         });
     }
 
+    executePost(address, url, requestBody) {
+        const username = this.resolveUsername(address);
+        if (!username) {
+            return new Promise((_, reject) => {
+                reject(`Unable to resolve username for address ${address}`)
+            })
+        }
+
+        return axios({
+            url: url,
+            method: "POST",
+            headers: {
+                ApiKey: this.apiKey,
+                UserName: username
+            },
+            data: requestBody
+        });
+    }
+
+    // requestMovie submits a request to add the given MovieSearchResult on behalf of the given address
+    requestMovie(address, movieSearchResult) {
+        return this.executePost(address, `${this.apiURL}/api/v1/request/movie`, {
+            theMovieDbId: movieSearchResult.movieDBID,
+            is4kRequest: false,
+        })
+    }
+
+    // resolveUsername tries to resolve the given address to the associated Ombi username
+    resolveUsername(address) {
+        return process.env["USERNAME_" + address];
+    }
+
     // searchMovies returns a Promise that resolves to an array of MovieSearchResult objects
     // describing the results of the search term executed on behalf of the given address.
     searchMovies(address, searchTerm) {
-        return this.executeGet(address, `${this.apiURL}/api/v1/Search/movie/${encodeURIComponent(searchTerm)}`).then(response => {
+        return this.executeGet(address, `${this.apiURL}/api/v1/search/movie/${encodeURIComponent(searchTerm)}`).then(response => {
             return response.data.map(result => {
                 return new MovieSearchResult(result.title, new Date(result.releaseDate), result.theMovieDbId);
             })
