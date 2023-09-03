@@ -10,6 +10,14 @@ This operates based on an allow list of wallet addresses, relying on Ethereum pr
 
 This project requires Node >= 18.0.0.
 
+## Installation
+
+Within GitHub, click the green "Code" button and select the "Download ZIP" option.
+
+Extract the contents of the ZIP file to a location of your choice.
+
+From there, follow [Usage](#usage), below, for instructions on how to run it.
+
 ## Usage
 
 Create a `.env` file that looks like the following:
