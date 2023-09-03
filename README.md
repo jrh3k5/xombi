@@ -2,6 +2,10 @@
 
 xombi is an XMTP bot that allows you to interface with your [Ombi](https://ombi.io/) instance.
 
+This is intended to be ran internally within your network with visibility to your Ombi instance, allowing you to remotely search for and enqueue movies without exposing Ombi to the internet.
+
+This operates based on an allow list of wallet addresses, relying on Ethereum private key authentication to secure your requests. Each allow-listed address must be mapped to a username known to Ombi; this does not allow 'anonymous' requests.
+
 ## Prerequisites
 
 This project requires Node >= 18.0.0.
