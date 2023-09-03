@@ -38,3 +38,5 @@ Once that's set up, run:
 ```
 node index.js
 ```
+
+Following that, send `help` to the bot for instructions on how to interact with it.
