@@ -1,5 +1,6 @@
 import { getUserState } from "../state/user_state.js";
 import { newClient } from "../ombi/client.js";
+import { MovieAlreadyRequestedError } from '../ombi/errors.js'
 
 const ombiClient = newClient();
 
@@ -26,7 +27,16 @@ export async function requestMovie(handlerContext) {
     }
 
     const selectedMovie = searchResults[selectedIndex];
-    await ombiClient.requestMovie(senderAddress, selectedMovie);
+    try {
+        await ombiClient.requestMovie(senderAddress, selectedMovie);
+    } catch(error) {
+        if (error === MovieAlreadyRequestedError) {
+            handlerContext.reply("That movie has already been requested.");
+            return
+        }
+
+        throw error;
+    }
 
     handlerContext.reply(`Your request for '${selectedMovie.name}' (${selectedMovie.releaseDate.getUTCFullYear()}) has been enqueued!`);
 }
