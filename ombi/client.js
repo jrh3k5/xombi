@@ -1,6 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { MovieSearchResult } from './model.js';
+import { MovieAlreadyRequestedError } from './errors.js'
 
 dotenv.config();
 
@@ -61,9 +62,18 @@ class OmbiClient {
 
     // requestMovie submits a request to add the given MovieSearchResult on behalf of the given address
     requestMovie(address, movieSearchResult) {
-        return this.executePost(address, `${this.apiURL}/api/v1/request/movie`, {
-            theMovieDbId: movieSearchResult.movieDBID,
-            is4kRequest: false,
+        return new Promise((resolve, reject) => {
+            this.executePost(address, `${this.apiURL}/api/v1/request/movie`, {
+                theMovieDbId: movieSearchResult.movieDBID,
+                is4kRequest: false,
+            }).then(result => {
+                if (result && result.data && result.data.errorCode === "AlreadyRequested") {
+                    reject(MovieAlreadyRequestedError);
+                    return;
+                }
+
+                resolve();
+            }).catch(reject);
         })
     }
 
