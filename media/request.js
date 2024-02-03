@@ -46,7 +46,7 @@ export async function requestTV(ombiClient, handlerContext) {
 function getSelectedSearchResult(handlerContext, requiredState) {
     const sentMessage = handlerContext.message.content;
     if (!/^[0-9]+$/.test(sentMessage)) {
-        throw 'Invalid input for submitting a movie request';
+        throw 'Invalid input for submitting a request';
     }
 
     const senderAddress = handlerContext.message.senderAddress;
