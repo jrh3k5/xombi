@@ -2,11 +2,9 @@ import { USER_STATE_MOVIE_SEARCHING, getUserState } from "../state/user_state.js
 import { requestMovie } from "./request.js";
 import { searchMovies } from "./search.js";
 
-const userStates = new Map();
-
 // triageCurrentStep is used to, based on the given sender address and the current state of that sender's
 // workflow, return an async no-arg function that can be invoked.
-export function triageCurrentStep(handlerContext) {
+export function triageCurrentStep(ombiClient, handlerContext) {
     const senderAddress = handlerContext.message.senderAddress;
     const sentContent = handlerContext.message.content.toLowerCase();
 
@@ -17,7 +15,7 @@ export function triageCurrentStep(handlerContext) {
             };
         case sentContent.startsWith("movie "):
             return async function() {
-                await searchMovies(handlerContext);
+                await searchMovies(ombiClient, handlerContext);
             };
         default:
             const [currentState, _] = getUserState(senderAddress);
@@ -26,7 +24,7 @@ export function triageCurrentStep(handlerContext) {
                 switch(currentState) {
                     case USER_STATE_MOVIE_SEARCHING:
                         return async function() {
-                            await requestMovie(handlerContext);
+                            await requestMovie(ombiClient, handlerContext);
                         };
                 }
             }
