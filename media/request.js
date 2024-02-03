@@ -1,5 +1,5 @@
 import { USER_STATE_MOVIE_SEARCHING, USER_STATE_TV_SEARCHING, clearUserState, getUserState } from "../state/user_state.js";
-import { MovieAlreadyRequestedError } from '../ombi/errors.js'
+import { MovieAlreadyRequestedError, ShowAlreadyRequestedError } from '../ombi/errors.js'
 
 // requestMovie submits a request for a movie based on the selection within the given HandlerContext.
 export async function requestMovie(ombiClient, handlerContext) {
@@ -30,7 +30,7 @@ export async function requestTV(ombiClient, handlerContext) {
     try {
         await ombiClient.requestTV(senderAddress, selectedShow);
     } catch(error) {
-        if (error === MovieAlreadyRequestedError) {
+        if (error === ShowAlreadyRequestedError) {
             handlerContext.reply("That TV show has already been requested.");
             return
         }

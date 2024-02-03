@@ -1,7 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { MovieSearchResult, TVSearchResult } from './model.js';
-import { MovieAlreadyRequestedError } from './errors.js'
+import { MovieAlreadyRequestedError, ShowAlreadyRequestedError } from './errors.js'
 
 dotenv.config();
 
@@ -81,10 +81,8 @@ class OmbiClient {
             requestAll: true
         })
 
-        console.log("result", result);
-
         if (result && result.data && result.data.errorMessage && result.data.errorMessage.indexOf("already have episodes") >= 0) {
-            throw MovieAlreadyRequestedError;
+            throw ShowAlreadyRequestedError;
         }
     }
 

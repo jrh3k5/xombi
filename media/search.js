@@ -46,7 +46,7 @@ export async function searchTV(ombiClient, handlerContext) {
     tvResults.forEach((tvResult, movieResultIndex) => {
         responseText += `\n${movieResultIndex + 1}. ${tvResult.name}`
     })
-    responseText += "\n\nJust send me the number of the movie you'd like me search for and I'll queue it up!";
+    responseText += "\n\nJust send me the number of the show you'd like me search for and I'll queue it up!";
     responseText += "\n\nPlease note that this will enqueue ALL seasons for the selected show.";
     await handlerContext.reply(responseText);
     
