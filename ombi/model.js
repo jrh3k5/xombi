@@ -1,7 +1,13 @@
 export class MovieSearchResult {
-    constructor(name, releaseDate, movieDBID) {
+    constructor(id, name) {
+        this.id = id;
         this.name = name;
-        this.releaseDate = releaseDate;
-        this.movieDBID = movieDBID;
+    }
+}
+
+export class TVSearchResult {
+    constructor(id, name) {
+        this.id = id;
+        this.name = name;
     }
 }

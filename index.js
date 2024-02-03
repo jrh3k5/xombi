@@ -19,6 +19,11 @@ const ombiClient = newClient();
 // with a HandlerContext
 run(async (context) => {
   const senderAddress = context.message.senderAddress;
+  if (context.message.recipientAddress === senderAddress) {
+    // XMTP will echo back messages, so skip those
+    return;
+  }
+  
   if (allowedAddresses.indexOf(senderAddress) < 0) {
     await context.reply("Sorry, I'm not allowed to talk to strangers.");
     return;
