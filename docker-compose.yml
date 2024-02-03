@@ -1,0 +1,25 @@
+version: "3"
+services:
+  xombi:
+    image: node:18
+    depends_on:
+      - ombi
+    user: "node"
+    working_dir: /home/node/app
+    env_file:
+      - .env
+    volumes:
+      - ./:/home/node/app
+    command: "node index.js"
+  ombi:
+    image: ghcr.io/linuxserver/ombi:4.43.5
+    container_name: ombi
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Zurich
+    volumes:
+      - ./.docker/ombi/config:/config
+    ports:
+      - "9753:3579"

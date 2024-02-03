@@ -40,3 +40,33 @@ node index.js
 ```
 
 Following that, send `help` to the bot for instructions on how to interact with it.
+
+## Running Locally
+
+You can run the bot with its own Ombi instance using Docker. This will require connecting the local Ombi instance to a Plex server.
+
+This requires manual setup of the Ombi instance first, so run this command first to start Ombi:
+
+```
+docker compose up ombi -d
+```
+
+Once it's running, navigate to http://localhost:9753 to set up Ombi. Once it's set up, obtain the Ombi API key from [here](http://localhost:9753/Settings/Ombi). Take note, also, of the user [here](http://localhost:9753/usermanagement) you want the bot to send your requests as to Ombi.
+
+Once you have the API key, create a `.env` file like so:
+
+```
+ALLOW_LIST=<your wallet address>
+KEY=<the private key to be used by Xombi to sign XMTP messages>
+OMBI_API_KEY=<your Ombi API key>
+OMBI_API_URL=http://ombi:3579
+USERNAME_<your wallet address>=<your username as it appears in Ombi>
+```
+
+Then run:
+
+```
+docker compose up -d
+```
+
+This will start the bot on top of the Ombi instance already running.
