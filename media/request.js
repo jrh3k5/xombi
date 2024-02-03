@@ -1,10 +1,7 @@
 import { getUserState } from "../state/user_state.js";
-import { newClient } from "../ombi/client.js";
 import { MovieAlreadyRequestedError } from '../ombi/errors.js'
 
-const ombiClient = newClient();
-
-export async function requestMovie(handlerContext) {
+export async function requestMovie(ombiClient, handlerContext) {
     const sentMessage = handlerContext.message.content;
     if (!/^[0-9]+$/.test(sentMessage)) {
         throw 'Invalid input for submitting a movie request';

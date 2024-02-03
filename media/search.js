@@ -1,10 +1,7 @@
-import { newClient } from "../ombi/client.js";
 import { clearUserState, setUserState, USER_STATE_MOVIE_SEARCHING } from "../state/user_state.js";
 
-const ombiClient = newClient();
-
 // searchMovies executes a movie search for the given HandlerContext
-export async function searchMovies(handlerContext) {
+export async function searchMovies(ombiClient, handlerContext) {
     const senderAddress = handlerContext.message.senderAddress;
     const searchTerm = handlerContext.message.content.substring(6);
     let movieResults = await ombiClient.searchMovies(senderAddress, searchTerm);
