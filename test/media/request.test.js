@@ -40,6 +40,7 @@ describe("requesting a movie", () => {
         };
         handlerContext.reply = message => {
             replies.push(message);
+            return Promise.resolve();
         }
         
     })
@@ -62,8 +63,8 @@ describe("requesting a movie", () => {
                 let movie1;
 
                 beforeEach(() => {
-                    movie0 = new MovieSearchResult("Movie 0", new Date(2020, 0, 15), "0");
-                    movie1 = new MovieSearchResult("Movie 1", new Date(2019, 10, 23), "1");
+                    movie0 = new MovieSearchResult(0, "Movie 0");
+                    movie1 = new MovieSearchResult(1, "Movie 1");
 
                     userState.searchResults = [movie0, movie1];
                 })

@@ -1,6 +1,7 @@
 const userStates = new Map();
 
 export const USER_STATE_MOVIE_SEARCHING = "movie_searching";
+export const USER_STATE_TV_SEARCHING = "tv_searching";
 
 // clearUserState clears the user's current state
 export function clearUserState(address) {
