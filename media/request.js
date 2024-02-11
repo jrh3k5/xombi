@@ -17,7 +17,7 @@ export async function requestMovie(ombiClient, handlerContext) {
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedMovie.name}' has been enqueued!`);
+    await handlerContext.reply(`Your request for '${selectedMovie.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }
@@ -38,7 +38,7 @@ export async function requestTV(ombiClient, handlerContext) {
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedShow.name}' has been enqueued!`);
+    await handlerContext.reply(`Your request for '${selectedShow.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }
