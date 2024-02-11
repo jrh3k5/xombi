@@ -4,53 +4,46 @@ import { clearUserState, setUserState, USER_STATE_MOVIE_SEARCHING, USER_STATE_TV
 export async function searchMovies(ombiClient, handlerContext) {
     const senderAddress = handlerContext.message.senderAddress;
     const searchTerm = handlerContext.message.content.substring(6);
-    let movieResults = await ombiClient.searchMovies(senderAddress, searchTerm);
-    if (movieResults.length > 5) {
-        movieResults = movieResults.splice(0, 5);
-    }
-
-    if (movieResults.length == 0) {
-        handlerContext.reply("No results found for the given search");
-        clearUserState();
-        return;
-    }
-
-    let responseText = `Your search returned ${movieResults.length} results:\n`
-    movieResults.forEach((movieResult, movieResultIndex) => {
-        responseText += `\n${movieResultIndex + 1}. ${movieResult.name}`
-    })
-    responseText += "\n\nJust send me the number of the movie you'd like me search for and I'll queue it up!"
-    await handlerContext.reply(responseText);
-    
-    setUserState(senderAddress, USER_STATE_MOVIE_SEARCHING, {
-        searchResults: movieResults
-    });
+    const movieResults = await ombiClient.searchMovies(senderAddress, searchTerm);
+    await showSearchResults(handlerContext, movieResults, USER_STATE_MOVIE_SEARCHING);
 }
 
 // searchTV executs a TV show search for the given HandlerContext
 export async function searchTV(ombiClient, handlerContext) {
     const senderAddress = handlerContext.message.senderAddress;
     const searchTerm = handlerContext.message.content.substring(3);
-    let tvResults = await ombiClient.searchTV(senderAddress, searchTerm);
-    if (tvResults.length > 5) {
-        tvResults = tvResults.splice(0, 5);
+    const tvResults = await ombiClient.searchTV(senderAddress, searchTerm);
+    await showSearchResults(handlerContext, tvResults, USER_STATE_TV_SEARCHING, [
+        "Please note that this will enqueue ALL seasons for the selected show."
+    ]);
+}
+
+async function showSearchResults(handlerContext, searchResults, endState, suffixStrings) {
+    if (searchResults.length > 5) {
+        searchResults = searchResults.splice(0, 5);
     }
 
-    if (tvResults.length == 0) {
+    if (searchResults.length == 0) {
         handlerContext.reply("No results found for the given search");
         clearUserState();
         return;
     }
 
-    let responseText = `Your search returned ${tvResults.length} results:\n`
-    tvResults.forEach((tvResult, movieResultIndex) => {
-        responseText += `\n${movieResultIndex + 1}. ${tvResult.name}`
+    let responseText = `Your search returned ${searchResults.length} results:\n`
+    searchResults.forEach((searchResult, searchResultIndex) => {
+        responseText += `\n${searchResultIndex + 1}. ${searchResult.getListText()}`
     })
-    responseText += "\n\nJust send me the number of the show you'd like me search for and I'll queue it up!";
-    responseText += "\n\nPlease note that this will enqueue ALL seasons for the selected show.";
+    responseText += "\n\nJust send me the number of the result you'd like me to get and I'll queue it up!";
+
+    if (suffixStrings) {
+        suffixStrings.forEach(suffixString => {
+            responseText += `\n\n${suffixString}`;
+        })
+    }
+
     await handlerContext.reply(responseText);
     
-    setUserState(senderAddress, USER_STATE_TV_SEARCHING, {
-        searchResults: tvResults
+    setUserState(handlerContext.message.senderAddress, endState, {
+        searchResults: searchResults
     });
 }

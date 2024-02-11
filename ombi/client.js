@@ -106,8 +106,19 @@ class OmbiClient {
         const response = await this.executePost(address, `${this.apiURL}/api/v2/search/multi/${encodeURIComponent(searchTerm)}`, {
             tvShows: true
         });
-        return response.data.map(result => {
-            return new TVSearchResult(result.id, result.title);
-        })
+
+        const tvShows = [];
+        for (let responseIndex = 0; responseIndex < response.data.length; responseIndex++) {
+            const responseData = response.data[responseIndex];
+            const showID = responseData.id;
+            const showTitle = responseData.title;
+
+            const showDetailsResponse = await this.executeGet(address, `${this.apiURL}/api/v2/search/tv/moviedb/${showID}`);
+            const startDate = new Date(showDetailsResponse.data.firstAired);
+
+            tvShows.push(new TVSearchResult(showID, showTitle, startDate));
+        }
+
+        return tvShows;
     }
 }

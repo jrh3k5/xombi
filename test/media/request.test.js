@@ -172,8 +172,8 @@ describe("requesting a TV show", () => {
                 let show1;
 
                 beforeEach(() => {
-                    show0 = new TVSearchResult(0, "Show 0");
-                    show1 = new TVSearchResult(1, "Show 1");
+                    show0 = new TVSearchResult(0, "Show 0", new Date("2023-10-01"));
+                    show1 = new TVSearchResult(1, "Show 1", new Date("2024-02-01"));
 
                     userState.searchResults = [show0, show1];
                 })
