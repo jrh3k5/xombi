@@ -6,6 +6,9 @@ services:
       - ombi
     user: "node"
     working_dir: /home/node/app
+    environment:
+      OMBI_API_URL: "http://ombi:3579"
+      XMTP_ENV: "production"
     env_file:
       - .env
     volumes:
