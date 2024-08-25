@@ -63,10 +63,15 @@ class OmbiClient {
     // requestMovie submits a request to add the given MovieSearchResult on behalf of the given address.
     // If the requested movie has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestMovie(address, movieSearchResult) {
-        const result = await this.executePost(address, `${this.apiURL}/api/v1/request/movie`, {
+        const requestURL = `${this.apiURL}/api/v2/requests/movie`;
+        const result = await this.executePost(address, requestURL, {
             theMovieDbId: movieSearchResult.id,
             is4kRequest: false,
         });
+
+        if (process.env.DEBUG_OMBI_SEARCH) {
+            console.log(`response to ${requestURL}:`, response);
+        }
 
         if (result && result.data && result.data.errorCode === "AlreadyRequested") {
             throw MovieAlreadyRequestedError;
@@ -76,10 +81,15 @@ class OmbiClient {
     // requestTV submits a request to add the given TVSearchResult on behalf of the given address.
     // If the requested TV show has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestTV(address, tvSearchResult) {
-        const result = await this.executePost(address, `${this.apiURL}/api/v2/requests/tv`, {
+        const requestURL = `${this.apiURL}/api/v2/requests/tv`;
+        const result = await this.executePost(address, requestURL, {
             theMovieDbId: tvSearchResult.id,
             requestAll: true
         })
+
+        if (process.env.DEBUG_OMBI_SEARCH) {
+            console.log(`response to ${requestURL}:`, response);
+        }
 
         if (result && result.data && result.data.errorMessage && result.data.errorMessage.indexOf("already have episodes") >= 0) {
             throw ShowAlreadyRequestedError;
@@ -93,9 +103,15 @@ class OmbiClient {
 
     // searchMovies returns an array of MovieSearchResult objects describing the results of the search term executed on behalf of the given address.
     async searchMovies(address, searchTerm) {
-        const response = await this.executePost(address, `${this.apiURL}/api/v2/search/multi/${encodeURIComponent(searchTerm)}`, {
+        const requestURL = `${this.apiURL}/api/v2/search/multi/${encodeURIComponent(searchTerm)}`;
+        const response = await this.executePost(address, requestURL, {
             movies: true
         })
+
+        if (process.env.DEBUG_OMBI_SEARCH) {
+            console.log(`response to ${requestURL}:`, response);
+        }
+
         return response.data.map(result => {
             return new MovieSearchResult(result.id, result.title);
         });
@@ -103,9 +119,14 @@ class OmbiClient {
 
     // searchTV returns an array of TVSearchResult objects describing the results of the search term executed on behalf of the given address.
     async searchTV(address, searchTerm) {
-        const response = await this.executePost(address, `${this.apiURL}/api/v2/search/multi/${encodeURIComponent(searchTerm)}`, {
+        const requestURL = `${this.apiURL}/api/v2/search/multi/${encodeURIComponent(searchTerm)}`;
+        const response = await this.executePost(address, requestURL, {
             tvShows: true
         });
+
+        if (process.env.DEBUG_OMBI_SEARCH) {
+            console.log(`response to ${requestURL}:`, response);
+        }
 
         const tvShows = [];
         for (let responseIndex = 0; responseIndex < response.data.length; responseIndex++) {

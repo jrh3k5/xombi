@@ -31,6 +31,14 @@ OMBI_API_URL=<the URL at which your Ombi instance resides>
 USERNAME_<allowlisted address>=<username to be mapped to allowlisted address>
 ```
 
+Optionally, you can add:
+
+```
+DEBUG_OMBI_SEARCH=true
+```
+
+...this will enable debug logging of the responses received from Ombi.
+
 By default, the bot will generate a random private key; if you want the bot to accept messages at a particular address, provide a private key as the `KEY` environmental variable.
 
 Once that's set up, run:
