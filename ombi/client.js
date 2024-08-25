@@ -64,7 +64,7 @@ class OmbiClient {
     // If the requested movie has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestMovie(address, movieSearchResult) {
         const requestURL = `${this.apiURL}/api/v1/request/movie`;
-        const result = await this.executePost(address, requestURL, {
+        const response = await this.executePost(address, requestURL, {
             theMovieDbId: movieSearchResult.id,
             is4kRequest: false,
         });
@@ -73,7 +73,7 @@ class OmbiClient {
             console.log(`response to ${requestURL}:`, response);
         }
 
-        if (result && result.data && result.data.errorCode === "AlreadyRequested") {
+        if (response && response.data && response.data.errorCode === "AlreadyRequested") {
             throw MovieAlreadyRequestedError;
         }
     }
@@ -82,7 +82,7 @@ class OmbiClient {
     // If the requested TV show has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestTV(address, tvSearchResult) {
         const requestURL = `${this.apiURL}/api/v2/requests/tv`;
-        const result = await this.executePost(address, requestURL, {
+        const response = await this.executePost(address, requestURL, {
             theMovieDbId: tvSearchResult.id,
             requestAll: true
         })
@@ -91,7 +91,7 @@ class OmbiClient {
             console.log(`response to ${requestURL}:`, response);
         }
 
-        if (result && result.data && result.data.errorMessage && result.data.errorMessage.indexOf("already have episodes") >= 0) {
+        if (response && response.data && response.data.errorMessage && response.data.errorMessage.indexOf("already have episodes") >= 0) {
             throw ShowAlreadyRequestedError;
         }
     }
