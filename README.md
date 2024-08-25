@@ -8,7 +8,7 @@ This operates based on an allow list of wallet addresses, relying on Ethereum pr
 
 ## Prerequisites
 
-This project requires Node >= 18.0.0.
+This project requires Node >= 20.0.0.
 
 ## Installation
 
