@@ -63,7 +63,7 @@ class OmbiClient {
     // requestMovie submits a request to add the given MovieSearchResult on behalf of the given address.
     // If the requested movie has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestMovie(address, movieSearchResult) {
-        const requestURL = `${this.apiURL}/api/v2/requests/movie`;
+        const requestURL = `${this.apiURL}/api/v1/request/movie`;
         const result = await this.executePost(address, requestURL, {
             theMovieDbId: movieSearchResult.id,
             is4kRequest: false,
