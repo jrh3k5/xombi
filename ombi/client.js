@@ -1,7 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { MovieSearchResult, TVSearchResult } from './model.js';
-import { MovieAlreadyRequestedError, ShowAlreadyRequestedError } from './errors.js'
+import { MovieAlreadyRequestedError, NoRequestPermissions, ShowAlreadyRequestedError } from './errors.js'
 
 dotenv.config();
 
