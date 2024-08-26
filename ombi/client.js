@@ -61,7 +61,7 @@ class OmbiClient {
     }
 
     // Throws an error if the response from Ombi is an error.
-    handleOmbiError(response) {
+    handleOmbiError(requestURL, response) {
         if (process.env.DEBUG_OMBI_SEARCH) {
             console.log(`response to ${requestURL}:`, response);
         }
@@ -92,7 +92,7 @@ class OmbiClient {
             is4kRequest: false,
         });
 
-        this.handleOmbiError(response);
+        this.handleOmbiError(requestURL, response);
     }
 
     // requestTV submits a request to add the given TVSearchResult on behalf of the given address.
@@ -104,7 +104,7 @@ class OmbiClient {
             requestAll: true
         })
 
-        this.handleOmbiError(response);
+        this.handleOmbiError(requestURL, response);
     }
 
     // resolveUsername tries to resolve the given address to the associated Ombi username
@@ -119,7 +119,7 @@ class OmbiClient {
             movies: true
         })
 
-        this.handleOmbiError(response);
+        this.handleOmbiError(requestURL, response);
 
         return response.data.map(result => {
             return new MovieSearchResult(result.id, result.title);
@@ -133,7 +133,7 @@ class OmbiClient {
             tvShows: true
         });
 
-        this.handleOmbiError(response);
+        this.handleOmbiError(requestURL, response);
 
         const tvShows = [];
         for (let responseIndex = 0; responseIndex < response.data.length; responseIndex++) {
