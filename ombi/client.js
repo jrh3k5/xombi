@@ -71,15 +71,25 @@ class OmbiClient {
         }
 
         if (response.data.isError) {
-            if (response.data.errorCode === "AlreadyRequested") {
-                throw MovieAlreadyRequestedError;
+            switch (response.data.errorCode) {
+                case "AlreadyRequested":
+                    throw MovieAlreadyRequestedError;
+                case "NoPermissionsRequestMovie":
+                    throw NoRequestPermissions;
             }
 
-            if (response.data.errorMessage && response.data.errorMessage.indexOf("already have episodes") >= 0) {
-                throw ShowAlreadyRequestedError;
-            }
+            if (response.data.errorMessage) {
+                if (response.data.errorMessage.indexOf("already have episodes") >= 0) {
+                    throw ShowAlreadyRequestedError;
+                }
 
-            throw `Ombi returned an unexpected error code(${response.data.errorCode}) with a message: ${response.data.errorMessage}`
+                // Requesting TV shows without permissions returns a null error code, so use the error message
+                if (response.data.errorMessage.indexOf("do not have permissions to") >= 0) {
+                    throw NoRequestPermissions;
+                }
+            }
+            
+            throw `Ombi returned an unexpected error code (${response.data.errorCode}) with a message: ${response.data.errorMessage}`
         }
     }
 

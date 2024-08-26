@@ -1,5 +1,5 @@
 import { USER_STATE_MOVIE_SEARCHING, USER_STATE_TV_SEARCHING, clearUserState, getUserState } from "../state/user_state.js";
-import { MovieAlreadyRequestedError, ShowAlreadyRequestedError } from '../ombi/errors.js'
+import { MovieAlreadyRequestedError, NoRequestPermissions, ShowAlreadyRequestedError } from '../ombi/errors.js'
 
 // requestMovie submits a request for a movie based on the selection within the given message.
 export async function requestMovie(ombiClient, message) {
@@ -11,6 +11,9 @@ export async function requestMovie(ombiClient, message) {
     } catch(error) {
         if (error === MovieAlreadyRequestedError) {
             message.conversation.send("That movie has already been requested.");
+            return
+        } else if (error == NoRequestPermissions) {
+            message.conversation.send("You do not have permission to request that movie.");
             return
         }
 
@@ -32,6 +35,10 @@ export async function requestTV(ombiClient, message) {
     } catch(error) {
         if (error === ShowAlreadyRequestedError) {
             message.conversation.send("That TV show has already been requested.");
+            return
+        } else if (error == NoRequestPermissions) {
+            message.conversation.send("You do not have permission to request that show.");
+
             return
         }
 
