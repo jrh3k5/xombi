@@ -60,6 +60,29 @@ class OmbiClient {
         });
     }
 
+    // Throws an error if the response from Ombi is an error.
+    handleOmbiError(response) {
+        if (process.env.DEBUG_OMBI_SEARCH) {
+            console.log(`response to ${requestURL}:`, response);
+        }
+
+        if (!response || !response.data) {
+            throw 'no response from Ombi';
+        }
+
+        if (response.data.isError) {
+            if (response.data.errorCode === "AlreadyRequested") {
+                throw MovieAlreadyRequestedError;
+            }
+
+            if (response.data.errorMessage && response.data.errorMessage.indexOf("already have episodes") >= 0) {
+                throw ShowAlreadyRequestedError;
+            }
+
+            throw `Ombi returned an unexpected error code(${response.data.errorCode}) with a message: ${response.data.errorMessage}`
+        }
+    }
+
     // requestMovie submits a request to add the given MovieSearchResult on behalf of the given address.
     // If the requested movie has already been requested, then MovieAlreadyRequestedError is thrown.
     async requestMovie(address, movieSearchResult) {
@@ -69,13 +92,7 @@ class OmbiClient {
             is4kRequest: false,
         });
 
-        if (process.env.DEBUG_OMBI_SEARCH) {
-            console.log(`response to ${requestURL}:`, response);
-        }
-
-        if (response && response.data && response.data.errorCode === "AlreadyRequested") {
-            throw MovieAlreadyRequestedError;
-        }
+        this.handleOmbiError(response);
     }
 
     // requestTV submits a request to add the given TVSearchResult on behalf of the given address.
@@ -87,13 +104,7 @@ class OmbiClient {
             requestAll: true
         })
 
-        if (process.env.DEBUG_OMBI_SEARCH) {
-            console.log(`response to ${requestURL}:`, response);
-        }
-
-        if (response && response.data && response.data.errorMessage && response.data.errorMessage.indexOf("already have episodes") >= 0) {
-            throw ShowAlreadyRequestedError;
-        }
+        this.handleOmbiError(response);
     }
 
     // resolveUsername tries to resolve the given address to the associated Ombi username
@@ -108,9 +119,7 @@ class OmbiClient {
             movies: true
         })
 
-        if (process.env.DEBUG_OMBI_SEARCH) {
-            console.log(`response to ${requestURL}:`, response);
-        }
+        this.handleOmbiError(response);
 
         return response.data.map(result => {
             return new MovieSearchResult(result.id, result.title);
@@ -124,9 +133,7 @@ class OmbiClient {
             tvShows: true
         });
 
-        if (process.env.DEBUG_OMBI_SEARCH) {
-            console.log(`response to ${requestURL}:`, response);
-        }
+        this.handleOmbiError(response);
 
         const tvShows = [];
         for (let responseIndex = 0; responseIndex < response.data.length; responseIndex++) {
