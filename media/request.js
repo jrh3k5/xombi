@@ -13,7 +13,7 @@ export async function requestMovie(ombiClient, message) {
             message.conversation.send("That movie has already been requested.");
             return
         } else if (error == NoRequestPermissions) {
-            message.conversation.send("You do not have permission to request that movie.");
+            message.conversation.send("You do not have permission to request a movie.");
             return
         }
 
@@ -37,7 +37,7 @@ export async function requestTV(ombiClient, message) {
             message.conversation.send("That TV show has already been requested.");
             return
         } else if (error == NoRequestPermissions) {
-            message.conversation.send("You do not have permission to request that show.");
+            message.conversation.send("You do not have permission to request a show.");
 
             return
         }
