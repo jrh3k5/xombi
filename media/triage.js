@@ -4,22 +4,22 @@ import { searchMovies, searchTV } from "./search.js";
 
 // triageCurrentStep is used to, based on the given sender address and the current state of that sender's
 // workflow, return an async no-arg function that can be invoked.
-export function triageCurrentStep(ombiClient, handlerContext) {
-    const senderAddress = handlerContext.message.senderAddress;
-    const sentContent = handlerContext.message.content.toLowerCase();
+export function triageCurrentStep(ombiClient, message) {
+    const senderAddress = message.senderAddress;
+    const sentContent = message.content.toLowerCase();
 
     switch (true) {
         case sentContent === "help":
             return async function() {
-                handlerContext.reply("To search for a movie, send 'movie <search terms>' to me; for TV shows, send 'tv <search terms>'");
+                message.conversation.send("To search for a movie, send 'movie <search terms>' to me; for TV shows, send 'tv <search terms>'");
             };
         case sentContent.startsWith("movie "):
             return async function() {
-                await searchMovies(ombiClient, handlerContext);
+                await searchMovies(ombiClient, message);
             };
         case sentContent.startsWith("tv "):
             return async function() {
-                await searchTV(ombiClient, handlerContext);
+                await searchTV(ombiClient, message);
             };
         default:
             const [currentState, _] = getUserState(senderAddress);
@@ -28,17 +28,17 @@ export function triageCurrentStep(ombiClient, handlerContext) {
                 switch(currentState) {
                     case USER_STATE_MOVIE_SEARCHING:
                         return async () => {
-                            await requestMovie(ombiClient, handlerContext);
+                            await requestMovie(ombiClient, message);
                         };
                     case USER_STATE_TV_SEARCHING:
                         return async () => {
-                            await requestTV(ombiClient, handlerContext);
+                            await requestTV(ombiClient, message);
                         }
                 }
             }
 
             return async function() {
-                handlerContext.reply("Sorry, I don't know what to do with that.");
+                message.conversation.send("Sorry, I don't know what to do with that.");
             };
     }
 }

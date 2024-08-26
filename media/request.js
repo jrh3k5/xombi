@@ -1,55 +1,62 @@
 import { USER_STATE_MOVIE_SEARCHING, USER_STATE_TV_SEARCHING, clearUserState, getUserState } from "../state/user_state.js";
-import { MovieAlreadyRequestedError, ShowAlreadyRequestedError } from '../ombi/errors.js'
+import { MovieAlreadyRequestedError, NoRequestPermissions, ShowAlreadyRequestedError } from '../ombi/errors.js'
 
-// requestMovie submits a request for a movie based on the selection within the given HandlerContext.
-export async function requestMovie(ombiClient, handlerContext) {
-    const senderAddress = handlerContext.message.senderAddress;
+// requestMovie submits a request for a movie based on the selection within the given message.
+export async function requestMovie(ombiClient, message) {
+    const senderAddress = message.senderAddress;
 
-    const selectedMovie = getSelectedSearchResult(handlerContext, USER_STATE_MOVIE_SEARCHING);
+    const selectedMovie = getSelectedSearchResult(message, USER_STATE_MOVIE_SEARCHING);
     try {
         await ombiClient.requestMovie(senderAddress, selectedMovie);
     } catch(error) {
         if (error === MovieAlreadyRequestedError) {
-            handlerContext.reply("That movie has already been requested.");
+            message.conversation.send("That movie has already been requested.");
+            return
+        } else if (error == NoRequestPermissions) {
+            message.conversation.send("You do not have permission to request a movie.");
             return
         }
 
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedMovie.getListText()}' has been enqueued!`);
+    await message.conversation.send(`Your request for '${selectedMovie.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }
 
-// requestTV submits a request to enqueue the TV show based on the selection within the given HandlerContext.
-export async function requestTV(ombiClient, handlerContext) {
-    const senderAddress = handlerContext.message.senderAddress;
+// requestTV submits a request to enqueue the TV show based on the selection within the given message.
+export async function requestTV(ombiClient, message) {
+    const senderAddress = message.senderAddress;
 
-    const selectedShow = getSelectedSearchResult(handlerContext, USER_STATE_TV_SEARCHING);
+    const selectedShow = getSelectedSearchResult(message, USER_STATE_TV_SEARCHING);
     try {
         await ombiClient.requestTV(senderAddress, selectedShow);
     } catch(error) {
         if (error === ShowAlreadyRequestedError) {
-            handlerContext.reply("That TV show has already been requested.");
+            message.conversation.send("That TV show has already been requested.");
+            return
+        } else if (error == NoRequestPermissions) {
+            message.conversation.send("You do not have permission to request a show.");
+
             return
         }
 
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedShow.getListText()}' has been enqueued!`);
+    await message.conversation.send(`Your request for '${selectedShow.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }
 
-function getSelectedSearchResult(handlerContext, requiredState) {
-    const sentMessage = handlerContext.message.content;
+function getSelectedSearchResult(message, requiredState) {
+    const sentMessage = message.content;
     if (!/^[0-9]+$/.test(sentMessage)) {
         throw 'Invalid input for submitting a request';
     }
 
-    const senderAddress = handlerContext.message.senderAddress;
+    const senderAddress = message.senderAddress;
     const [userState, stateContext] = getUserState(senderAddress);
 
     if (userState !== requiredState) {

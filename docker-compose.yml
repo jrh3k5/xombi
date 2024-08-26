@@ -1,7 +1,7 @@
 version: "3"
 services:
   xombi:
-    image: node:18
+    image: node:20
     depends_on:
       - ombi
     user: "node"
@@ -15,7 +15,7 @@ services:
       - ./:/home/node/app
     command: "node index.js"
   ombi:
-    image: ghcr.io/linuxserver/ombi:4.43.5
+    image: ghcr.io/linuxserver/ombi:v4.44.1-ls200
     container_name: ombi
     restart: unless-stopped
     environment:
