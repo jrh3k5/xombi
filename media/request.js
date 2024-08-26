@@ -17,7 +17,7 @@ export async function requestMovie(ombiClient, message) {
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedMovie.getListText()}' has been enqueued!`);
+    await message.conversation.send(`Your request for '${selectedMovie.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }
@@ -31,14 +31,14 @@ export async function requestTV(ombiClient, message) {
         await ombiClient.requestTV(senderAddress, selectedShow);
     } catch(error) {
         if (error === ShowAlreadyRequestedError) {
-            handlerContext.reply("That TV show has already been requested.");
+            message.conversation.send("That TV show has already been requested.");
             return
         }
 
         throw error;
     }
 
-    await handlerContext.reply(`Your request for '${selectedShow.getListText()}' has been enqueued!`);
+    await message.conversation.send(`Your request for '${selectedShow.getListText()}' has been enqueued!`);
 
     clearUserState(senderAddress);
 }

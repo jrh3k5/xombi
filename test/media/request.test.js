@@ -6,7 +6,7 @@ import { MovieSearchResult, TVSearchResult } from "../../ombi/model.js";
 
 describe("requesting a movie", () => {
     let senderAddress;
-    let handlerContext;
+    let message;
     let ombiClient;
     let requestedMovies;
     let alreadyRequestedMovies;
@@ -33,21 +33,21 @@ describe("requesting a movie", () => {
 
         senderAddress = "0x1234"
 
-        handlerContext = {
-            message: {
-                senderAddress: senderAddress
-            }
-        };
-        handlerContext.reply = message => {
-            replies.push(message);
-            return Promise.resolve();
+        message = {
+            senderAddress: senderAddress,
+            conversation: {
+                send: message => {
+                    replies.push(message);
+                    return Promise.resolve();
+                }
+            },
+            content: "request movie"
         }
-        
     })
 
     describe("when the user input is a number", () => {
         beforeEach(() => {
-            handlerContext.message.content = "2";
+            message.content = "2";
         })
 
         describe("when there is a user state", () => {
@@ -70,7 +70,7 @@ describe("requesting a movie", () => {
                 })
 
                 it("requests the movie", async() => {
-                    await requestMovie(ombiClient, handlerContext);
+                    await requestMovie(ombiClient, message);
 
                     expect(requestedMovies[senderAddress]).to.contain(movie1);
                     expect(replies).to.have.lengthOf(1);
@@ -84,7 +84,7 @@ describe("requesting a movie", () => {
                     })
 
                     it("informs the user that the movie has already been requested", async() => {
-                        await requestMovie(ombiClient, handlerContext);
+                        await requestMovie(ombiClient, message);
 
                         expect(replies).to.have.lengthOf(1);
                         expect(replies[0]).to.equal("That movie has already been requested.");
@@ -96,14 +96,14 @@ describe("requesting a movie", () => {
 
     describe("when it is not a number in the input", () => {
         beforeEach(() => {
-            handlerContext.message.content = "not a number";
+            message.content = "not a number";
         })
 
         it("rejects the request", async() => {
             let caughtError;
 
             try {
-                await requestMovie(ombiClient, handlerContext);
+                await requestMovie(ombiClient, message);
             } catch(e) {
                 caughtError = e;
             }
@@ -115,7 +115,7 @@ describe("requesting a movie", () => {
 
 describe("requesting a TV show", () => {
     let senderAddress;
-    let handlerContext;
+    let message;
     let ombiClient;
     let requestedShows;
     let alreadyRequestedShows;
@@ -142,21 +142,20 @@ describe("requesting a TV show", () => {
 
         senderAddress = "0x1234"
 
-        handlerContext = {
-            message: {
-                senderAddress: senderAddress
+        message = {
+            senderAddress: senderAddress,
+            conversation: {
+                send: message => {
+                    replies.push(message);
+                    return Promise.resolve();
+                }
             }
         };
-        handlerContext.reply = message => {
-            replies.push(message);
-            return Promise.resolve();
-        }
-        
     })
 
     describe("when the user input is a number", () => {
         beforeEach(() => {
-            handlerContext.message.content = "2";
+            message.content = "2";
         })
 
         describe("when there is a user state", () => {
@@ -179,7 +178,7 @@ describe("requesting a TV show", () => {
                 })
 
                 it("requests the show", async() => {
-                    await requestTV(ombiClient, handlerContext);
+                    await requestTV(ombiClient, message);
 
                     expect(requestedShows[senderAddress]).to.contain(show1);
                     expect(replies).to.have.lengthOf(1);
@@ -193,7 +192,7 @@ describe("requesting a TV show", () => {
                     })
 
                     it("informs the user that the show has already been requested", async() => {
-                        await requestTV(ombiClient, handlerContext);
+                        await requestTV(ombiClient, message);
 
                         expect(replies).to.have.lengthOf(1);
                         expect(replies[0]).to.equal("That TV show has already been requested.");
@@ -205,14 +204,14 @@ describe("requesting a TV show", () => {
 
     describe("when it is not a number in the input", () => {
         beforeEach(() => {
-            handlerContext.message.content = "not a number";
+            message.content = "not a number";
         })
 
         it("rejects the request", async() => {
             let caughtError;
 
             try {
-                await requestTV(ombiClient, handlerContext);
+                await requestTV(ombiClient, message);
             } catch(e) {
                 caughtError = e;
             }
