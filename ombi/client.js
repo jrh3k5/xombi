@@ -153,8 +153,10 @@ class OmbiClient {
 
             const showDetailsResponse = await this.executeGet(address, `${this.apiURL}/api/v2/search/tv/moviedb/${showID}`);
             const startDate = new Date(showDetailsResponse.data.firstAired);
+            const seasonCount = (showDetailsResponse.data.seasonRequests || []).length;
+            const status = (showDetailsResponse.data.status || '').toLowerCase();
 
-            tvShows.push(new TVSearchResult(showID, showTitle, startDate));
+            tvShows.push(new TVSearchResult(showID, showTitle, startDate, seasonCount, status));
         }
 
         return tvShows;

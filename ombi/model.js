@@ -12,15 +12,18 @@ export class MovieSearchResult {
 }
 
 export class TVSearchResult {
-    constructor(id, name, startDate) {
+    constructor(id, name, startDate, seasonCount, status) {
         this.id = id;
         this.name = name;
         this.startDate = startDate;
+        this.seasonCount = seasonCount;
+        this.status = status;
     }
 
     // getListText returns a string representation of the movie
     // for showing in the search results list.
     getListText() {
-        return `${this.name} (${this.startDate.getUTCFullYear()})`
+        let seasonText = this.seasonCount == 1 ? "season" : "seasons";
+        return `${this.name} (${this.startDate.getUTCFullYear()}) (${this.seasonCount} ${seasonText}, ${this.status})`;
     }
 }
