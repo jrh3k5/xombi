@@ -1,0 +1,4 @@
+# Ignore the database files if they're generated locally.
+# Otherwise, the Docker instance will fail to start because it's
+# copying files that were written and owned by the OS user, not the Docker user.
+xmtp-*.db3*

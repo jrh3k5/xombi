@@ -1,11 +1,13 @@
 {
   "name": "xombi",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "An XMTP bot used to handle requests for Ombi",
   "type": "module",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "test": "mocha --recursive --exit"
+    "test": "mocha",
+    "format": "npx prettier . --write",
+    "lint": "npx eslint ."
   },
   "repository": {
     "type": "git",
@@ -18,13 +20,28 @@
   "author": "Joshua Hyde",
   "license": "Apache-2.0",
   "dependencies": {
-    "@xmtp/xmtp-js": "^12.1.0",
+    "@types/expect": "^1.20.4",
+    "@types/jest": "^29.5.14",
+    "@xmtp/node-sdk": "^1.0.0-rc2",
     "axios": "^1.7.4",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.2"
+    "viem": "^2.23.11"
   },
   "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/chai": "^5.2.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.13.10",
+    "@types/supertest": "^6.0.2",
     "chai": "^5.1.1",
-    "mocha": "^10.7.3"
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "mocha": "^10.7.3",
+    "prettier": "^3.5.3",
+    "ts-mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
   }
 }
