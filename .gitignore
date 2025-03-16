@@ -131,3 +131,9 @@ dist
 
 # Ignore configuration artifacts started up by Docker
 .docker/ombi/config
+
+# Ignore local database artifacts
+xmtp-*.db3*
+
+# Always ignore node_modules
+node_modules

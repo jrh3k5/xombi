@@ -1,21 +1,19 @@
-version: "3"
 services:
   xombi:
-    image: node:20
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on:
       - ombi
     user: "node"
     working_dir: /home/node/app
     environment:
       OMBI_API_URL: "http://ombi:3579"
-      XMTP_ENV: "production"
+      XMTP_ENV: "dev"
     env_file:
       - .env
-    volumes:
-      - ./:/home/node/app
-    command: "node index.js"
   ombi:
-    image: ghcr.io/linuxserver/ombi:v4.44.1-ls200
+    image: ghcr.io/linuxserver/ombi:v4.47.1-ls215
     container_name: ombi
     restart: unless-stopped
     environment:
