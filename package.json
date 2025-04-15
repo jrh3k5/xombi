@@ -24,7 +24,7 @@
     "@types/jest": "^29.5.14",
     "@xmtp/node-sdk": "^1.2.0",
     "axios": "^1.8.4",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "viem": "^2.26.0"
   },
   "devDependencies": {
