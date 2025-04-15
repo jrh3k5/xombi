@@ -22,7 +22,7 @@
   "dependencies": {
     "@types/expect": "^24.3.2",
     "@types/jest": "^29.5.14",
-    "@xmtp/node-sdk": "^1.0.5",
+    "@xmtp/node-sdk": "^1.2.0",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "viem": "^2.26.0"
