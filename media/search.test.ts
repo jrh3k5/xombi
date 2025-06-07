@@ -1,11 +1,12 @@
+import { OmbiClient } from "../ombi/client";
 import { searchMovies, searchTV } from "./search";
-import { UserSearchState } from "../state/user_state";
+import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 describe("search.ts", () => {
-  let ombiClient: any;
+  let ombiClient: OmbiClient;
   let senderAddress: `0x${string}`;
-  let message: any;
-  let conversation: any;
+  let message: Partial<DecodedMessage<string>>;
+  let conversation: Partial<Dm> & { send: jest.Mock };
 
   beforeEach(() => {
     ombiClient = {
@@ -28,7 +29,12 @@ describe("search.ts", () => {
   describe("searchMovies", () => {
     it("calls ombiClient.searchMovies with the correct search term", async () => {
       await expect(
-        searchMovies(ombiClient, senderAddress, message, conversation),
+        searchMovies(
+          ombiClient,
+          senderAddress,
+          message as unknown as DecodedMessage<string>,
+          conversation as unknown as Dm,
+        ),
       ).resolves.toBeUndefined();
       expect(ombiClient.searchMovies).toHaveBeenCalledWith(
         senderAddress,
@@ -38,7 +44,12 @@ describe("search.ts", () => {
 
     it("sends a message and does not call ombiClient.searchMovies if content is missing", async () => {
       message.content = undefined;
-      await searchMovies(ombiClient, senderAddress, message, conversation);
+      await searchMovies(
+        ombiClient,
+        senderAddress,
+        message as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      );
       expect(conversation.send).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
@@ -47,7 +58,12 @@ describe("search.ts", () => {
 
     it("sends a message and does not call ombiClient.searchMovies if content is too short", async () => {
       message.content = "sear";
-      await searchMovies(ombiClient, senderAddress, message, conversation);
+      await searchMovies(
+        ombiClient,
+        senderAddress,
+        message as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      );
       expect(conversation.send).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
@@ -59,7 +75,12 @@ describe("search.ts", () => {
     it("calls ombiClient.searchTV with the correct search term", async () => {
       message.content = "tv Friends";
       await expect(
-        searchTV(ombiClient, senderAddress, message, conversation),
+        searchTV(
+          ombiClient,
+          senderAddress,
+          message as DecodedMessage<string>,
+          conversation as unknown as Dm,
+        ),
       ).resolves.toBeUndefined();
       expect(ombiClient.searchTV).toHaveBeenCalledWith(
         senderAddress,
@@ -69,7 +90,12 @@ describe("search.ts", () => {
 
     it("sends a message and does not call ombiClient.searchTV if content is missing", async () => {
       message.content = undefined;
-      await searchTV(ombiClient, senderAddress, message, conversation);
+      await searchTV(
+        ombiClient,
+        senderAddress,
+        message as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      );
       expect(conversation.send).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
@@ -78,7 +104,12 @@ describe("search.ts", () => {
 
     it("sends a message and does not call ombiClient.searchTV if content is too short", async () => {
       message.content = "t";
-      await searchTV(ombiClient, senderAddress, message, conversation);
+      await searchTV(
+        ombiClient,
+        senderAddress,
+        message as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      );
       expect(conversation.send).toHaveBeenCalledWith(
         "Please provide a search term.",
       );

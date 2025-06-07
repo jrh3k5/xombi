@@ -12,12 +12,23 @@ import {
 config();
 
 // newClient creates a new instance of OmbiClient that can be used to interact with Ombi.
-export function newClient(): OmbiClient {
-  return new OmbiClient();
+export function newClient(): HttpOmbiClient {
+  return new HttpOmbiClient();
+}
+
+export interface OmbiClient {
+  searchMovies(
+    address: `0x${string}`,
+    searchTerm: string,
+  ): Promise<MovieSearchResult[]>;
+  searchTV(
+    address: `0x${string}`,
+    searchTerm: string,
+  ): Promise<TVSearchResult[]>;
 }
 
 // OmbiClient is a client used to interact with Ombi
-export class OmbiClient {
+export class HttpOmbiClient implements OmbiClient {
   private apiUrl: string;
   private apiKey: string;
 
