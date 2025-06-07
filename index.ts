@@ -1,5 +1,11 @@
 import { Chain, Hex, toBytes } from "viem";
-import { Client, type ClientOptions, Dm, XmtpEnv } from "@xmtp/node-sdk";
+import {
+  Client,
+  type ClientOptions,
+  type DecodedMessage,
+  Dm,
+  XmtpEnv,
+} from "@xmtp/node-sdk";
 import dotenv from "dotenv";
 import { newClient } from "./ombi/client";
 import { triageCurrentStep } from "./media/triage";
@@ -130,12 +136,16 @@ async function main(): Promise<void> {
         continue;
       }
 
+      if (typeof message.content !== "string") {
+        continue;
+      }
+
       const triagePromises = Array.from(allEthereumAddresses).map(
         (senderAddress) => {
           return triageCurrentStep(
             ombiClient,
             senderAddress as `0x${string}`,
-            message,
+            message as DecodedMessage<string>,
             conversation!,
           );
         },

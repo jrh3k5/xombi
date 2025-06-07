@@ -9,15 +9,13 @@ import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 export async function triageCurrentStep(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,
-  message: DecodedMessage<any>,
+  message: DecodedMessage<string>,
   conversation: Dm,
 ): Promise<void> {
-  const messageContent = message.content;
-  if (!messageContent || typeof messageContent !== "string") {
+  const sentContent = message.content?.toLowerCase();
+  if (!sentContent) {
     return;
   }
-
-  const sentContent = messageContent.toLowerCase();
 
   if (sentContent === "help") {
     await conversation.send(
