@@ -52,7 +52,7 @@ describe("HttpOmbiClient", () => {
       const badClient = new HttpOmbiClient();
       delete process.env["USERNAME_0x123"];
       await expect(
-        badClient.executeGet("0x123" as `0x${string}`,"/api/test")
+        badClient.executeGet("0x123" as `0x${string}`, "/api/test"),
       ).rejects.toThrow(UnresolvableAddressError);
     });
     it("calls axios with correct params", async () => {
@@ -62,8 +62,11 @@ describe("HttpOmbiClient", () => {
         expect.objectContaining({
           url: "/api/test",
           method: "GET",
-          headers: expect.objectContaining({ ApiKey: apiKey, UserName: "testuser" }),
-        })
+          headers: expect.objectContaining({
+            ApiKey: apiKey,
+            UserName: "testuser",
+          }),
+        }),
       );
     });
   });
@@ -73,7 +76,9 @@ describe("HttpOmbiClient", () => {
       const badClient = new HttpOmbiClient();
       delete process.env["USERNAME_0x123"];
       await expect(
-        badClient.executePost("0x123" as `0x${string}`,"/api/test", { foo: "bar" })
+        badClient.executePost("0x123" as `0x${string}`, "/api/test", {
+          foo: "bar",
+        }),
       ).rejects.toThrow(UnresolvableAddressError);
     });
     it("calls axios with correct params", async () => {
@@ -83,15 +88,20 @@ describe("HttpOmbiClient", () => {
         expect.objectContaining({
           url: "/api/test",
           method: "POST",
-          headers: expect.objectContaining({ ApiKey: apiKey, UserName: "testuser" }),
+          headers: expect.objectContaining({
+            ApiKey: apiKey,
+            UserName: "testuser",
+          }),
           data: { foo: "bar" },
-        })
+        }),
       );
     });
   });
 
   // Helper to create a mock AxiosResponse
-  function mockAxiosResponse(data: unknown): import("axios").AxiosResponse<Record<string, unknown>> {
+  function mockAxiosResponse(
+    data: unknown,
+  ): import("axios").AxiosResponse<Record<string, unknown>> {
     return {
       data: data as Record<string, unknown>,
       status: 200,
@@ -102,33 +112,62 @@ describe("HttpOmbiClient", () => {
   }
 
   describe("handleOmbiError", () => {
-
     it("throws NoOmbiResponseError if no data", () => {
-      expect(() => client.handleOmbiError("/api", mockAxiosResponse(undefined))).toThrow(NoOmbiResponseError);
+      expect(() =>
+        client.handleOmbiError("/api", mockAxiosResponse(undefined)),
+      ).toThrow(NoOmbiResponseError);
     });
     it("throws MovieAlreadyRequestedError on AlreadyRequested", () => {
       expect(() =>
-        client.handleOmbiError("/api", mockAxiosResponse({ isError: true, errorCode: "AlreadyRequested" }))
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({ isError: true, errorCode: "AlreadyRequested" }),
+        ),
       ).toThrow(MovieAlreadyRequestedError);
     });
     it("returns NoRequestPermissions on NoPermissionsRequestMovie", () => {
       expect(
-        client.handleOmbiError("/api", mockAxiosResponse({ isError: true, errorCode: "NoPermissionsRequestMovie" }))
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({
+            isError: true,
+            errorCode: "NoPermissionsRequestMovie",
+          }),
+        ),
       ).toBeInstanceOf(NoRequestPermissions);
     });
     it("throws ShowAlreadyRequestedError on errorMessage", () => {
       expect(() =>
-        client.handleOmbiError("/api", mockAxiosResponse({ isError: true, errorMessage: "already have episodes" }))
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({
+            isError: true,
+            errorMessage: "already have episodes",
+          }),
+        ),
       ).toThrow(ShowAlreadyRequestedError);
     });
     it("returns NoRequestPermissions on permissions errorMessage", () => {
       expect(
-        client.handleOmbiError("/api", mockAxiosResponse({ isError: true, errorMessage: "do not have permissions to" }))
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({
+            isError: true,
+            errorMessage: "do not have permissions to",
+          }),
+        ),
       ).toBeInstanceOf(NoRequestPermissions);
     });
     it("throws generic error for unknown error", () => {
       expect(() =>
-        client.handleOmbiError("/api", mockAxiosResponse({ isError: true, errorCode: "Other", errorMessage: "fail" }))
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({
+            isError: true,
+            errorCode: "Other",
+            errorMessage: "fail",
+          }),
+        ),
       ).toThrow(/Ombi returned an unexpected error code/);
     });
   });
@@ -136,7 +175,12 @@ describe("HttpOmbiClient", () => {
   // Integration-like tests for searchMovies and searchTV
   describe("searchMovies", () => {
     it("returns MovieSearchResult array", async () => {
-      mockedAxios.mockResolvedValueOnce({ data: [ { id: 1, title: "Movie 1" }, { id: 2, title: "Movie 2" } ] });
+      mockedAxios.mockResolvedValueOnce({
+        data: [
+          { id: 1, title: "Movie 1" },
+          { id: 2, title: "Movie 2" },
+        ],
+      });
       const results = await client.searchMovies(address, "test");
       expect(results).toHaveLength(2);
       expect(results[0]).toBeInstanceOf(MovieSearchResult);
@@ -145,14 +189,22 @@ describe("HttpOmbiClient", () => {
     });
     it("throws if response is not array", async () => {
       mockedAxios.mockResolvedValueOnce({ data: {} });
-      await expect(client.searchMovies(address, "test")).rejects.toThrow("Expected array response");
+      await expect(client.searchMovies(address, "test")).rejects.toThrow(
+        "Expected array response",
+      );
     });
   });
 
   describe("searchTV", () => {
     it("returns TVSearchResult array", async () => {
-      mockedAxios.mockResolvedValueOnce({ data: [ { id: 1, title: "Show 1" } ] });
-      mockedAxios.mockResolvedValueOnce({ data: { firstAired: "2020-01-01", seasonRequests: [1,2], status: "Continuing" } });
+      mockedAxios.mockResolvedValueOnce({ data: [{ id: 1, title: "Show 1" }] });
+      mockedAxios.mockResolvedValueOnce({
+        data: {
+          firstAired: "2020-01-01",
+          seasonRequests: [1, 2],
+          status: "Continuing",
+        },
+      });
       const results = await client.searchTV(address, "test");
       expect(results).toHaveLength(1);
       expect(results[0]).toBeInstanceOf(TVSearchResult);
@@ -162,7 +214,9 @@ describe("HttpOmbiClient", () => {
     });
     it("throws if response is not array", async () => {
       mockedAxios.mockResolvedValueOnce({ data: {} });
-      await expect(client.searchTV(address, "test")).rejects.toThrow("Expected array response");
+      await expect(client.searchTV(address, "test")).rejects.toThrow(
+        "Expected array response",
+      );
     });
   });
 });
