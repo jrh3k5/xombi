@@ -10,6 +10,8 @@ describe("search.ts", () => {
 
   beforeEach(() => {
     ombiClient = {
+      requestMovie: jest.fn().mockResolvedValue(undefined),
+      requestTV: jest.fn().mockResolvedValue(undefined),
       searchMovies: jest
         .fn()
         .mockResolvedValue([

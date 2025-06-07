@@ -17,6 +17,14 @@ export function newClient(): HttpOmbiClient {
 }
 
 export interface OmbiClient {
+  requestMovie(
+    address: `0x${string}`,
+    movieSearchResult: MovieSearchResult,
+  ): Promise<void>;
+  requestTV(
+    address: `0x${string}`,
+    tvSearchResult: TVSearchResult,
+  ): Promise<void>;
   searchMovies(
     address: `0x${string}`,
     searchTerm: string,
