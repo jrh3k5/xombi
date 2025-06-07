@@ -1,10 +1,10 @@
-import { ListableResult } from "../ombi/model.ts";
+import { ListableResult } from "../ombi/model";
 import {
   clearUserState,
   setUserState,
   UserSearchState,
-} from "../state/user_state.ts";
-import { OmbiClient } from "../ombi/client.ts";
+} from "../state/user_state";
+import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 // searchMovies executes a movie search for the given message
