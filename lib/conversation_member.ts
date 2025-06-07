@@ -5,7 +5,8 @@ import { IdentifierKind } from "@xmtp/node-bindings";
 export function getEthereumAddressesOfMember(
   member: GroupMember,
 ): `0x${string}`[] {
-  return member.accountIdentifiers
+  const ids = member.accountIdentifiers ?? [];
+  return ids
     .filter(
       (identifier) => identifier.identifierKind === IdentifierKind.Ethereum,
     )

@@ -14,7 +14,7 @@ class UserState {
 
 // UserStateContext is the context associated with a user's current state
 export class UserStateContext {
-  searchResults: ListableResult[];
+  searchResults: ListableResult[] = [];
 }
 
 // UserSearchState enumerates the possible search states in which a user exists.

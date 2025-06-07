@@ -52,6 +52,18 @@ export class TVSearchResult implements ListableResult {
     return this.id;
   }
 
+  getName(): string {
+    return this.name;
+  }
+
+  getSeasonCount(): number {
+    return this.seasonCount;
+  }
+
+  getStatus(): string {
+    return this.status;
+  }
+
   getListText(): string {
     const seasonText = this.seasonCount == 1 ? "season" : "seasons";
     return `${this.name} (${this.startDate.getUTCFullYear()}) (${this.seasonCount} ${seasonText}, ${this.status})`;

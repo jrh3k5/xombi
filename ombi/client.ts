@@ -12,12 +12,31 @@ import {
 config();
 
 // newClient creates a new instance of OmbiClient that can be used to interact with Ombi.
-export function newClient(): OmbiClient {
-  return new OmbiClient();
+export function newClient(): HttpOmbiClient {
+  return new HttpOmbiClient();
+}
+
+export interface OmbiClient {
+  requestMovie(
+    address: `0x${string}`,
+    movieSearchResult: MovieSearchResult,
+  ): Promise<void>;
+  requestTV(
+    address: `0x${string}`,
+    tvSearchResult: TVSearchResult,
+  ): Promise<void>;
+  searchMovies(
+    address: `0x${string}`,
+    searchTerm: string,
+  ): Promise<MovieSearchResult[]>;
+  searchTV(
+    address: `0x${string}`,
+    searchTerm: string,
+  ): Promise<TVSearchResult[]>;
 }
 
 // OmbiClient is a client used to interact with Ombi
-export class OmbiClient {
+export class HttpOmbiClient implements OmbiClient {
   private apiUrl: string;
   private apiKey: string;
 
@@ -39,8 +58,7 @@ export class OmbiClient {
   async executeGet(
     address: `0x${string}`,
     url: string,
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<AxiosResponse<any, any>> {
+  ): Promise<AxiosResponse<Record<string, unknown>>> {
     const username = this.resolveUsername(address);
     if (!username) {
       throw new UnresolvableAddressError(address);
@@ -59,9 +77,8 @@ export class OmbiClient {
   async executePost(
     address: `0x${string}`,
     url: string,
-    requestBody,
-    //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<AxiosResponse<any, any>> {
+    requestBody: Record<string, unknown>,
+  ): Promise<AxiosResponse<Record<string, unknown>>> {
     const username = this.resolveUsername(address);
     if (!username) {
       throw new UnresolvableAddressError(address);
@@ -79,8 +96,10 @@ export class OmbiClient {
   }
 
   // Throws an error if the response from Ombi is an error.
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleOmbiError(requestURL: string, response: AxiosResponse<any, any>) {
+  handleOmbiError(
+    requestURL: string,
+    response: AxiosResponse<Record<string, unknown>>,
+  ) {
     if (process.env.DEBUG_OMBI_SEARCH) {
       console.log(`response to ${requestURL}:`, response);
     }
@@ -89,8 +108,11 @@ export class OmbiClient {
       throw new NoOmbiResponseError(`No Ombi response for ${requestURL}`);
     }
 
-    if (response.data.isError) {
-      switch (response.data.errorCode) {
+    const data = response.data as Record<string, unknown>;
+    if (data.isError) {
+      const errorCode =
+        typeof data.errorCode === "string" ? data.errorCode : undefined;
+      switch (errorCode) {
         case "AlreadyRequested":
           throw new MovieAlreadyRequestedError("Movie already requested");
         case "NoPermissionsRequestMovie":
@@ -99,22 +121,22 @@ export class OmbiClient {
           );
       }
 
-      if (response.data.errorMessage) {
-        if (response.data.errorMessage.indexOf("already have episodes") >= 0) {
+      const errorMessage =
+        typeof data.errorMessage === "string" ? data.errorMessage : "";
+      if (errorMessage) {
+        if (errorMessage.indexOf("already have episodes") >= 0) {
           throw new ShowAlreadyRequestedError("Show already requested");
         }
 
         // Requesting TV shows without permissions returns a null error code, so use the error message
-        if (
-          response.data.errorMessage.indexOf("do not have permissions to") >= 0
-        ) {
+        if (errorMessage.indexOf("do not have permissions to") >= 0) {
           return new NoRequestPermissions(
             `User does not have permission to request TV shows`,
           );
         }
       }
 
-      throw `Ombi returned an unexpected error code (${response.data.errorCode}) with a message: ${response.data.errorMessage}`;
+      throw `Ombi returned an unexpected error code (${errorCode}) with a message: ${errorMessage}`;
     }
   }
 
@@ -162,8 +184,15 @@ export class OmbiClient {
 
     await this.handleOmbiError(requestURL, response);
 
-    return response.data.map((result) => {
-      return new MovieSearchResult(result.id, result.title);
+    const data = response.data;
+    if (!Array.isArray(data)) {
+      throw new Error("Expected array response from Ombi for searchMovies");
+    }
+    return data.map((result: Record<string, unknown>) => {
+      return new MovieSearchResult(
+        String(result.id ?? ""),
+        String(result.title ?? ""),
+      );
     });
   }
 
@@ -179,19 +208,28 @@ export class OmbiClient {
 
     await this.handleOmbiError(requestURL, response);
 
+    const data = response.data;
+    if (!Array.isArray(data)) {
+      throw new Error("Expected array response from Ombi for searchTV");
+    }
     return Promise.all(
-      response.data.map(async (responseData) => {
-        const showID = responseData.id;
-        const showTitle = responseData.title;
+      data.map(async (responseData: Record<string, unknown>) => {
+        const showID = String(responseData.id ?? "");
+        const showTitle = String(responseData.title ?? "");
 
         const showDetailsResponse = await this.executeGet(
           address,
           `${this.apiUrl}/api/v2/search/tv/moviedb/${showID}`,
         );
-        const startDate = new Date(showDetailsResponse.data.firstAired);
-        const seasonCount = (showDetailsResponse.data.seasonRequests || [])
-          .length;
-        const status = (showDetailsResponse.data.status || "").toLowerCase();
+        const details = showDetailsResponse.data as Record<string, unknown>;
+        const startDate = new Date(String(details.firstAired ?? ""));
+        const seasonCount = Array.isArray(details.seasonRequests)
+          ? details.seasonRequests.length
+          : 0;
+        const status =
+          typeof details.status === "string"
+            ? details.status.toLowerCase()
+            : "";
 
         return new TVSearchResult(
           showID,

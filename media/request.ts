@@ -2,19 +2,19 @@ import {
   UserSearchState,
   clearUserState,
   getUserState,
-} from "../state/user_state.ts";
+} from "../state/user_state";
 import {
   MovieAlreadyRequestedError,
   NoRequestPermissions,
   ShowAlreadyRequestedError,
-} from "../ombi/errors.ts";
-import { OmbiClient } from "../ombi/client.ts";
+} from "../ombi/errors";
+import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import {
   ListableResult,
   MovieSearchResult,
   TVSearchResult,
-} from "../ombi/model.ts";
+} from "../ombi/model";
 
 // requestMovie submits a request for a movie based on the selection within the given message.
 export async function requestMovie(
@@ -88,7 +88,7 @@ function getSelectedSearchResult<R extends ListableResult>(
   requiredState: UserSearchState,
 ): R {
   const sentMessage = message.content;
-  if (!/^[0-9]+$/.test(sentMessage)) {
+  if (!/^[0-9]+$/.test(sentMessage ?? "")) {
     throw "Invalid input for submitting a request";
   }
 
@@ -107,7 +107,7 @@ function getSelectedSearchResult<R extends ListableResult>(
     throw "No search results found in state context";
   }
 
-  const selectedIndex = parseInt(sentMessage) - 1;
+  const selectedIndex = parseInt(sentMessage ?? "") - 1;
   if (selectedIndex >= searchResults.length) {
     throw `Invalid selection index; index was ${selectedIndex}, but there are ${searchResults.length} search results`;
   }
