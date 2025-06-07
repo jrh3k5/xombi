@@ -14,6 +14,11 @@ export async function searchMovies(
   message: DecodedMessage<string>,
   conversation: Dm,
 ): Promise<void> {
+  if (!message.content || message.content.length < 6) {
+    await conversation.send("Please provide a search term.");
+    return;
+  }
+
   const searchTerm = message.content.substring(6);
   const movieResults = await ombiClient.searchMovies(senderAddress, searchTerm);
   await showSearchResults(
@@ -32,6 +37,11 @@ export async function searchTV(
   message: DecodedMessage<string>,
   conversation: Dm,
 ): Promise<void> {
+  if (!message.content || message.content.length < 3) {
+    await conversation.send("Please provide a search term.");
+    return;
+  }
+
   const searchTerm = message.content.substring(3);
   const tvResults = await ombiClient.searchTV(senderAddress, searchTerm);
   await showSearchResults(

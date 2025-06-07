@@ -36,3 +36,6 @@ jobs:
         run: |
           npm run lint
           git diff --exit-code
+
+      - name: Run Jest tests
+        run: npx jest --config jest.config.cjs --ci --runInBand

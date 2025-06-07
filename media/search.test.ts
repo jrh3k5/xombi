@@ -1,0 +1,88 @@
+import { searchMovies, searchTV } from "./search";
+import { UserSearchState } from "../state/user_state";
+
+describe("search.ts", () => {
+  let ombiClient: any;
+  let senderAddress: `0x${string}`;
+  let message: any;
+  let conversation: any;
+
+  beforeEach(() => {
+    ombiClient = {
+      searchMovies: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 1, title: "Movie", getListText: () => "Movie" },
+        ]),
+      searchTV: jest
+        .fn()
+        .mockResolvedValue([
+          { id: 2, title: "Show", getListText: () => "Show" },
+        ]),
+    };
+    senderAddress = "0x1234567890abcdef1234567890abcdef12345678";
+    message = { content: "search Batman" };
+    conversation = { send: jest.fn() };
+  });
+
+  describe("searchMovies", () => {
+    it("calls ombiClient.searchMovies with the correct search term", async () => {
+      await expect(
+        searchMovies(ombiClient, senderAddress, message, conversation),
+      ).resolves.toBeUndefined();
+      expect(ombiClient.searchMovies).toHaveBeenCalledWith(
+        senderAddress,
+        " Batman",
+      );
+    });
+
+    it("sends a message and does not call ombiClient.searchMovies if content is missing", async () => {
+      message.content = undefined;
+      await searchMovies(ombiClient, senderAddress, message, conversation);
+      expect(conversation.send).toHaveBeenCalledWith(
+        "Please provide a search term.",
+      );
+      expect(ombiClient.searchMovies).not.toHaveBeenCalled();
+    });
+
+    it("sends a message and does not call ombiClient.searchMovies if content is too short", async () => {
+      message.content = "sear";
+      await searchMovies(ombiClient, senderAddress, message, conversation);
+      expect(conversation.send).toHaveBeenCalledWith(
+        "Please provide a search term.",
+      );
+      expect(ombiClient.searchMovies).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("searchTV", () => {
+    it("calls ombiClient.searchTV with the correct search term", async () => {
+      message.content = "tv Friends";
+      await expect(
+        searchTV(ombiClient, senderAddress, message, conversation),
+      ).resolves.toBeUndefined();
+      expect(ombiClient.searchTV).toHaveBeenCalledWith(
+        senderAddress,
+        "Friends",
+      );
+    });
+
+    it("sends a message and does not call ombiClient.searchTV if content is missing", async () => {
+      message.content = undefined;
+      await searchTV(ombiClient, senderAddress, message, conversation);
+      expect(conversation.send).toHaveBeenCalledWith(
+        "Please provide a search term.",
+      );
+      expect(ombiClient.searchTV).not.toHaveBeenCalled();
+    });
+
+    it("sends a message and does not call ombiClient.searchTV if content is too short", async () => {
+      message.content = "t";
+      await searchTV(ombiClient, senderAddress, message, conversation);
+      expect(conversation.send).toHaveBeenCalledWith(
+        "Please provide a search term.",
+      );
+      expect(ombiClient.searchTV).not.toHaveBeenCalled();
+    });
+  });
+});
