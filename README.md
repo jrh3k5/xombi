@@ -35,7 +35,7 @@ XOMBI_SIGNER_KEY=<private key of the signer, expressed as a 0x... string>
 XMTP_ENCRYPTION_KEY=<encryption key used to secure local storage, expressed as a 0x... string>
 OMBI_API_KEY=<your Ombi instance's API key>
 OMBI_API_URL=<the URL at which your Ombi instance resides>
-USERNAME_<allowlisted address>=<username to be mapped to allowlisted address>
+USERNAME_<allowlisted address>=<username to be mapped to allowlisted address; address must be normalized to all lower case>
 ```
 
 Caveats:

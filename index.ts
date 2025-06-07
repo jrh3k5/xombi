@@ -1,5 +1,5 @@
 import { Chain, Hex, toBytes } from "viem";
-import { Client, Dm, XmtpEnv } from "@xmtp/node-sdk";
+import { Client, type ClientOptions, Dm, XmtpEnv } from "@xmtp/node-sdk";
 import dotenv from "dotenv";
 import { newClient } from "./ombi/client";
 import { triageCurrentStep } from "./media/triage";
@@ -57,10 +57,12 @@ async function main(): Promise<void> {
     chain = sepolia;
   }
 
-  const eoaSigner = await convertEOAToSigner(account, chain);
-  const xmtpClient = await Client.create(eoaSigner, xmtpEncryptionKeyBytes, {
+  const clientOptions: ClientOptions = {
+    dbEncryptionKey: xmtpEncryptionKeyBytes,
     env: xmtpEnv,
-  });
+  };
+  const eoaSigner = await convertEOAToSigner(account, chain);
+  const xmtpClient = await Client.create(eoaSigner, clientOptions);
 
   console.log(
     `Agent initialized on ${account.address}\nSend a message on http://xmtp.chat/dm/${account.address}?env=${xmtpEnv}`,
