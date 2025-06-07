@@ -12,7 +12,10 @@ export async function triageCurrentStep(
   message: DecodedMessage<string>,
   conversation: Dm,
 ): Promise<void> {
-  const sentContent = message.content.toLowerCase();
+  const sentContent = message.content?.toLowerCase();
+  if (!sentContent) {
+    return;
+  }
 
   if (sentContent === "help") {
     await conversation.send(
