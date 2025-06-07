@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "test": "npx jest --config jest.config.cjs",
+    "test": "npx jest --config jest.config.cjs --coverage",
     "format": "npx prettier . --write",
     "lint": "npx eslint ."
   },

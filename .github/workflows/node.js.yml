@@ -38,4 +38,4 @@ jobs:
           git diff --exit-code
 
       - name: Run Jest tests
-        run: npx jest --config jest.config.cjs --ci --runInBand
+        run: npx jest --config jest.config.cjs --ci --runInBand --coverage --coverageThreshold='{"global":{"functions":70,"lines":70,"statements":70}}'
