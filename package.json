@@ -1,6 +1,6 @@
 {
   "name": "xombi",
-  "version": "2.1.0",
+  "version": "2.2.0-0",
   "description": "An XMTP bot used to handle requests for Ombi",
   "type": "module",
   "main": "index.ts",
