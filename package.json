@@ -23,7 +23,7 @@
     "@xmtp/node-sdk": "^2.1.0",
     "axios": "^1.9.0",
     "dotenv": "^16.5.0",
-    "viem": "^2.31.0"
+    "viem": "^2.31.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",
