@@ -22,7 +22,7 @@
   "dependencies": {
     "@xmtp/node-sdk": "^3.0.1",
     "axios": "^1.10.0",
-    "dotenv": "^16.5.0",
+    "dotenv": "^17.2.0",
     "viem": "^2.31.7"
   },
   "devDependencies": {
