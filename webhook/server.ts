@@ -1,6 +1,5 @@
 import express from "express";
 import { Server } from "http";
-import { log, error } from "console";
 
 export interface WebhookPayload {
   eventType?: string;
@@ -122,9 +121,6 @@ export class WebhookServer {
     const eventType = payload.eventType?.toLowerCase() || "";
     const subject = payload.subject?.toLowerCase() || "";
     const message = payload.message?.toLowerCase() || "";
-
-    // TODO: remove
-    log(`eventType is ${eventType}`);
 
     const availabilityKeywords = [
       "available",
