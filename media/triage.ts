@@ -33,11 +33,23 @@ export async function triageCurrentStep(
     if (currentState) {
       switch (currentState) {
         case UserSearchState.MOVIE:
-          await requestMovie(ombiClient, senderAddress, message, conversation, requestTracker);
+          await requestMovie(
+            ombiClient,
+            senderAddress,
+            message,
+            conversation,
+            requestTracker,
+          );
 
           return;
         case UserSearchState.TV:
-          await requestTV(ombiClient, senderAddress, message, conversation, requestTracker);
+          await requestTV(
+            ombiClient,
+            senderAddress,
+            message,
+            conversation,
+            requestTracker,
+          );
 
           return;
       }

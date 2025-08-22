@@ -46,7 +46,7 @@ export async function requestMovie(
 
   // Track the request for webhook notifications
   if (requestTracker) {
-    requestTracker.trackRequest(selectedMovie.getId(), 'movie', senderAddress);
+    requestTracker.trackRequest(selectedMovie.getId(), "movie", senderAddress);
   }
 
   await conversation.send(
@@ -85,7 +85,7 @@ export async function requestTV(
 
   // Track the request for webhook notifications
   if (requestTracker) {
-    requestTracker.trackRequest(selectedShow.getId(), 'tv', senderAddress);
+    requestTracker.trackRequest(selectedShow.getId(), "tv", senderAddress);
   }
 
   await conversation.send(

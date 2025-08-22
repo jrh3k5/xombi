@@ -23,8 +23,9 @@ export interface WebhookSystemComponents {
 
 export class WebhookInitializer {
   static parseEnvironmentConfig(): WebhookConfig {
-    const enabled = process.env.OMBI_XOMBI_WEBHOOK_ENABLED?.toLowerCase() === 'true';
-    
+    const enabled =
+      process.env.OMBI_XOMBI_WEBHOOK_ENABLED?.toLowerCase() === "true";
+
     if (!enabled) {
       return { enabled: false };
     }
@@ -35,7 +36,8 @@ export class WebhookInitializer {
     const ombiApiKey = process.env.OMBI_API_KEY;
 
     let allowlistedIPs: string[] = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
-    const configuredAllowlistedIPs = process.env.OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS;
+    const configuredAllowlistedIPs =
+      process.env.OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS;
     if (configuredAllowlistedIPs) {
       allowlistedIPs = configuredAllowlistedIPs.split(",");
     }
@@ -56,7 +58,9 @@ export class WebhookInitializer {
     }
 
     if (!config.applicationKey) {
-      throw new Error("OMBI_XOMBI_APPLICATION_KEY environment variable is required when webhooks are enabled");
+      throw new Error(
+        "OMBI_XOMBI_APPLICATION_KEY environment variable is required when webhooks are enabled",
+      );
     }
 
     if (!config.ombiApiKey) {
@@ -64,7 +68,10 @@ export class WebhookInitializer {
     }
   }
 
-  static async initializeWebhookSystem(config: WebhookConfig, xmtpClient: Client): Promise<WebhookSystemComponents | null> {
+  static async initializeWebhookSystem(
+    config: WebhookConfig,
+    xmtpClient: Client,
+  ): Promise<WebhookSystemComponents | null> {
     if (!config.enabled) {
       console.log("Webhook notifications disabled");
       return null;
@@ -75,14 +82,23 @@ export class WebhookInitializer {
 
     // Initialize components
     const requestTracker = new MemoryRequestTracker();
-    const webhookServer = new WebhookServer(requestTracker, config.applicationKey!, config.allowlistedIPs!);
-    const webhookManager = new WebhookManager(config.ombiApiUrl!, config.ombiApiKey!);
+    const webhookServer = new WebhookServer(
+      requestTracker,
+      config.applicationKey!,
+      config.allowlistedIPs!,
+    );
+    const webhookManager = new WebhookManager(
+      config.ombiApiUrl!,
+      config.ombiApiKey!,
+    );
     const xmtpNotifier = new XMTPNotifier(xmtpClient);
 
     // Set up notification handler
-    webhookServer.setNotificationHandler(async (address: string, message: string) => {
-      await xmtpNotifier.sendNotification(address, message);
-    });
+    webhookServer.setNotificationHandler(
+      async (address: string, message: string) => {
+        await xmtpNotifier.sendNotification(address, message);
+      },
+    );
 
     // Start webhook server
     const webhookPort = 3000;
@@ -91,20 +107,22 @@ export class WebhookInitializer {
     // Register webhook with Ombi
     try {
       let webhookUrl: string;
-      
+
       if (config.baseUrl) {
         webhookUrl = `${config.baseUrl}/webhook`;
         console.log(`Using custom webhook base URL: ${config.baseUrl}`);
       } else {
         webhookUrl = buildWebhookURL(webhookPort);
       }
-      
+
       console.log(`Registering webhook URL: ${webhookUrl}`);
       const registered = await webhookManager.registerWebhook(webhookUrl);
       if (registered) {
         console.log("Webhook successfully registered with Ombi");
       } else {
-        console.warn("Failed to register webhook with Ombi - notifications may not work");
+        console.warn(
+          "Failed to register webhook with Ombi - notifications may not work",
+        );
       }
     } catch (error) {
       console.error("Error setting up webhook:", error);

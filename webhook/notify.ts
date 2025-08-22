@@ -1,5 +1,5 @@
-import { Client, Dm } from '@xmtp/node-sdk';
-import { getEthereumAddressesOfMember } from '../lib/conversation_member';
+import { Client, Dm } from "@xmtp/node-sdk";
+import { getEthereumAddressesOfMember } from "../lib/conversation_member";
 
 export class XMTPNotifier {
   private xmtpClient: Client;
@@ -13,21 +13,21 @@ export class XMTPNotifier {
     try {
       // Try to get existing conversation from cache
       let conversation = this.conversationCache.get(address.toLowerCase());
-      
+
       if (!conversation) {
         // Look for existing conversation
         const conversations = await this.xmtpClient.conversations.list();
-        
+
         for (const conv of conversations) {
           const members = await conv.members();
-          const hasTargetMember = members.some(member => {
+          const hasTargetMember = members.some((member) => {
             const addresses = getEthereumAddressesOfMember(member);
-            return addresses.some(addr => 
-              addr.toLowerCase() === address.toLowerCase()
+            return addresses.some(
+              (addr) => addr.toLowerCase() === address.toLowerCase(),
             );
           });
-          
-          if (hasTargetMember && 'send' in conv) {
+
+          if (hasTargetMember && "send" in conv) {
             conversation = conv as Dm;
             this.conversationCache.set(address.toLowerCase(), conversation);
             break;
@@ -36,7 +36,9 @@ export class XMTPNotifier {
       }
 
       if (!conversation) {
-        console.log(`No existing conversation found with ${address}, cannot send notification`);
+        console.log(
+          `No existing conversation found with ${address}, cannot send notification`,
+        );
         return;
       }
 

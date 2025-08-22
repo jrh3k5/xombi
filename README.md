@@ -76,6 +76,7 @@ OMBI_XOMBI_WEBHOOK_BASE_URL=http://your-server-ip:3000
 ```
 
 Configuration details:
+
 - `OMBI_XOMBI_WEBHOOK_ENABLED=true` enables webhook notifications (required to activate webhooks)
 - `OMBI_XOMBI_APPLICATION_KEY` is used to authenticate webhook requests from Ombi. Generate with `openssl rand -hex 32`
 - `OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS` specifies which IP addresses can send webhook requests. By default, only localhost is allowed

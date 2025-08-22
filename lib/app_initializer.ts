@@ -2,7 +2,11 @@ import dotenv from "dotenv";
 import { newClient, type OmbiClient } from "../ombi/client";
 import { triageCurrentStep } from "../media/triage";
 import { getEthereumAddressesOfMember } from "./conversation_member";
-import { XMTPClientFactory, XMTPInstallationLimitError, XMTPClientCreationError } from "./xmtp_client_factory";
+import {
+  XMTPClientFactory,
+  XMTPInstallationLimitError,
+  XMTPClientCreationError,
+} from "./xmtp_client_factory";
 import { WebhookInitializer } from "./webhook_initializer";
 import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";
@@ -34,7 +38,10 @@ export class AppInitializer {
 
     const appConfig = this.parseAppConfig();
     console.log("xombi starting");
-    console.log("Allowing messages from addresses:", appConfig.allowedAddresses);
+    console.log(
+      "Allowing messages from addresses:",
+      appConfig.allowedAddresses,
+    );
 
     const ombiClient = newClient();
 
@@ -46,9 +53,11 @@ export class AppInitializer {
     } catch (error) {
       if (error instanceof XMTPInstallationLimitError) {
         console.error("\n❌ XMTP Installation Limit Error");
-        console.error("Your XMTP identity has reached the maximum number of installations.");
+        console.error(
+          "Your XMTP identity has reached the maximum number of installations.",
+        );
         console.error("\nTo resolve this issue, you can:");
-        error.getResolutionSteps().forEach(step => console.error(step));
+        error.getResolutionSteps().forEach((step) => console.error(step));
         console.error("\nFor more information, see: https://docs.xmtp.org/");
         console.error(`\nOriginal error: ${error.message}`);
         process.exit(1);
@@ -66,14 +75,17 @@ export class AppInitializer {
 
     // Initialize webhook system
     const webhookConfig = WebhookInitializer.parseEnvironmentConfig();
-    const webhookComponents = await WebhookInitializer.initializeWebhookSystem(webhookConfig, xmtpResult.client);
+    const webhookComponents = await WebhookInitializer.initializeWebhookSystem(
+      webhookConfig,
+      xmtpResult.client,
+    );
 
     // Start message processing loop
     await this.startMessageProcessingLoop(
       xmtpResult.client,
       appConfig.allowedAddresses,
       ombiClient,
-      webhookComponents?.requestTracker
+      webhookComponents?.requestTracker,
     );
   }
 
@@ -81,7 +93,7 @@ export class AppInitializer {
     xmtpClient: Client,
     allowedAddresses: string[],
     ombiClient: OmbiClient,
-    requestTracker?: RequestTracker
+    requestTracker?: RequestTracker,
   ): Promise<void> {
     for await (const message of await xmtpClient.conversations.streamAllMessages()) {
       let conversation: Conversation | undefined;
@@ -141,7 +153,9 @@ export class AppInitializer {
         }
 
         if (allowedCount < conversationMembers.length) {
-          await conversation.send("Sorry, I'm not allowed to talk to strangers.");
+          await conversation.send(
+            "Sorry, I'm not allowed to talk to strangers.",
+          );
           continue;
         }
 

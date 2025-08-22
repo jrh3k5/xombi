@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 export interface WebhookSettings {
   enabled: boolean;
@@ -23,20 +23,28 @@ export class WebhookManager {
         headers: {
           ApiKey: this.ombiApiKey,
         },
-      }
+      },
     );
-    
+
     return response.data;
   }
 
-  async registerWebhook(webhookUrl: string, applicationToken?: string): Promise<boolean> {
+  async registerWebhook(
+    webhookUrl: string,
+    applicationToken?: string,
+  ): Promise<boolean> {
     try {
       // First, check current settings to avoid unnecessary updates
       const currentSettings = await this.getCurrentWebhookSettings();
-      
+
       // If webhook is already configured with the same URL, don't update
-      if (currentSettings.enabled && currentSettings.webhookUrl === webhookUrl) {
-        console.log('Webhook already configured with the same URL, skipping registration');
+      if (
+        currentSettings.enabled &&
+        currentSettings.webhookUrl === webhookUrl
+      ) {
+        console.log(
+          "Webhook already configured with the same URL, skipping registration",
+        );
         return true;
       }
 
@@ -47,26 +55,29 @@ export class WebhookManager {
       };
 
       console.log(`Registering webhook with Ombi: ${webhookUrl}`);
-      
+
       const response = await axios.post(
         `${this.ombiApiUrl}/api/v1/Settings/notifications/webhook`,
         webhookSettings,
         {
           headers: {
             ApiKey: this.ombiApiKey,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data === true) {
         return true;
       } else {
-        console.error('Failed to register webhook, unexpected response:', response.data);
+        console.error(
+          "Failed to register webhook, unexpected response:",
+          response.data,
+        );
         return false;
       }
     } catch (error) {
-      console.error('Error registering webhook with Ombi:', error);
+      console.error("Error registering webhook with Ombi:", error);
       return false;
     }
   }
@@ -85,20 +96,23 @@ export class WebhookManager {
         {
           headers: {
             ApiKey: this.ombiApiKey,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data === true) {
-        console.log('Webhook successfully unregistered from Ombi');
+        console.log("Webhook successfully unregistered from Ombi");
         return true;
       } else {
-        console.error('Failed to unregister webhook, unexpected response:', response.data);
+        console.error(
+          "Failed to unregister webhook, unexpected response:",
+          response.data,
+        );
         return false;
       }
     } catch (error) {
-      console.error('Error unregistering webhook from Ombi:', error);
+      console.error("Error unregistering webhook from Ombi:", error);
       return false;
     }
   }
@@ -106,9 +120,9 @@ export class WebhookManager {
   async testWebhook(): Promise<boolean> {
     try {
       const currentSettings = await this.getCurrentWebhookSettings();
-      
+
       if (!currentSettings.enabled || !currentSettings.webhookUrl) {
-        console.log('No webhook configured to test');
+        console.log("No webhook configured to test");
         return false;
       }
 
@@ -122,15 +136,15 @@ export class WebhookManager {
         {
           headers: {
             ApiKey: this.ombiApiKey,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
-      console.log('Webhook test response:', response.status);
+      console.log("Webhook test response:", response.status);
       return response.status === 200;
     } catch (error) {
-      console.error('Error testing webhook:', error);
+      console.error("Error testing webhook:", error);
       return false;
     }
   }

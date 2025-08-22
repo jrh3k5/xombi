@@ -21,10 +21,14 @@ export interface XMTPClientCreationResult {
 export class XMTPClientFactory {
   static validateConfig(config: XMTPConfig): void {
     if (!config.signerKey) {
-      throw new Error("invalid Xombi signer key; must be of type `0x${string}`");
+      throw new Error(
+        "invalid Xombi signer key; must be of type `0x${string}`",
+      );
     }
     if (!config.encryptionKey) {
-      throw new Error("invalid XMTP encryption key; must be of type `0x${string}`");
+      throw new Error(
+        "invalid XMTP encryption key; must be of type `0x${string}`",
+      );
     }
     if (!["local", "dev", "production"].includes(config.environment)) {
       throw new Error(`invalid XMTP_ENV: ${config.environment}`);
@@ -34,14 +38,15 @@ export class XMTPClientFactory {
   static parseEnvironmentConfig(): XMTPConfig {
     const signerKey = process.env.XOMBI_SIGNER_KEY as `0x${string}`;
     const encryptionKey = process.env.XMTP_ENCRYPTION_KEY as `0x${string}`;
-    
+
     let environment: XmtpEnv = "production";
     const envEnv = process.env.XMTP_ENV;
     if (envEnv) {
       environment = envEnv as XmtpEnv;
     }
 
-    const autoRevokeInstallations = process.env.XMTP_REVOKE_ALL_OTHER_INSTALLATIONS?.toLowerCase() === 'true';
+    const autoRevokeInstallations =
+      process.env.XMTP_REVOKE_ALL_OTHER_INSTALLATIONS?.toLowerCase() === "true";
 
     const config: XMTPConfig = {
       signerKey,
@@ -54,17 +59,22 @@ export class XMTPClientFactory {
     return config;
   }
 
-  static async createClient(config: XMTPConfig): Promise<XMTPClientCreationResult> {
+  static async createClient(
+    config: XMTPConfig,
+  ): Promise<XMTPClientCreationResult> {
     const account = privateKeyToAccount(config.signerKey as Hex);
 
     let encryptionKeyBytes: Uint8Array;
     try {
       encryptionKeyBytes = toBytes(config.encryptionKey);
     } catch (error) {
-      throw new Error("failed to convert XMTP encryption key to bytes: " + error);
+      throw new Error(
+        "failed to convert XMTP encryption key to bytes: " + error,
+      );
     }
 
-    const chain: Chain = config.environment === "production" ? mainnet : sepolia;
+    const chain: Chain =
+      config.environment === "production" ? mainnet : sepolia;
 
     const clientOptions: ClientOptions = {
       dbEncryptionKey: encryptionKeyBytes,
@@ -75,24 +85,35 @@ export class XMTPClientFactory {
 
     let client: Client;
     try {
-      client = await Client.create(eoaSigner, clientOptions) as Client;
+      client = (await Client.create(eoaSigner, clientOptions)) as Client;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage?.includes('installation') && errorMessage?.includes('registered')) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (
+        errorMessage?.includes("installation") &&
+        errorMessage?.includes("registered")
+      ) {
         if (config.autoRevokeInstallations) {
-          console.log("🔄 XMTP installation limit reached. Auto-revoking other installations...");
+          console.log(
+            "🔄 XMTP installation limit reached. Auto-revoking other installations...",
+          );
           client = await this.handleInstallationLimitWithRevocation(
             error,
             eoaSigner,
             clientOptions,
-            config.environment
+            config.environment,
           );
         } else {
-          throw new XMTPInstallationLimitError(errorMessage, config.autoRevokeInstallations || false);
+          throw new XMTPInstallationLimitError(
+            errorMessage,
+            config.autoRevokeInstallations || false,
+          );
         }
       } else {
-        throw new XMTPClientCreationError(`XMTP client creation failed: ${errorMessage}`);
+        throw new XMTPClientCreationError(
+          `XMTP client creation failed: ${errorMessage}`,
+        );
       }
     }
 
@@ -107,12 +128,17 @@ export class XMTPClientFactory {
     originalError: unknown,
     eoaSigner: Signer,
     clientOptions: ClientOptions,
-    environment: XmtpEnv
+    environment: XmtpEnv,
   ): Promise<Client> {
-    const errorMessage = originalError instanceof Error ? originalError.message : String(originalError);
-    
-    console.log("⚠️  WARNING: This will revoke ALL other XMTP installations for this identity!");
-    
+    const errorMessage =
+      originalError instanceof Error
+        ? originalError.message
+        : String(originalError);
+
+    console.log(
+      "⚠️  WARNING: This will revoke ALL other XMTP installations for this identity!",
+    );
+
     // Extract inbox ID from the error message
     const inboxIdMatch = errorMessage.match(/InboxID (\w+)/);
     if (!inboxIdMatch) {
@@ -120,46 +146,54 @@ export class XMTPClientFactory {
     }
     const inboxId = inboxIdMatch[1];
     console.log(`Found InboxID: ${inboxId}`);
-    
+
     // Get inbox state to find all installations
     console.log("Getting inbox state to find installations...");
-    const inboxStates = await Client.inboxStateFromInboxIds([inboxId], environment);
-    
+    const inboxStates = await Client.inboxStateFromInboxIds(
+      [inboxId],
+      environment,
+    );
+
     if (!inboxStates || inboxStates.length === 0) {
       throw new Error("Failed to retrieve inbox state");
     }
-    
+
     const installations = inboxStates[0].installations;
     if (!installations || installations.length === 0) {
       throw new Error("No installations found to revoke");
     }
-    
+
     console.log(`Found ${installations.length} installations to revoke`);
-    
+
     // Get installation bytes for revocation
     const toRevokeInstallationBytes = installations.map((i) => i.bytes);
-    
+
     // Revoke installations using static method
     console.log("Revoking all installations...");
     await Client.revokeInstallations(
       eoaSigner,
       inboxId,
       toRevokeInstallationBytes,
-      environment
+      environment,
     );
-    
-    console.log("✅ Successfully revoked all installations. Retrying client creation...");
-    
+
+    console.log(
+      "✅ Successfully revoked all installations. Retrying client creation...",
+    );
+
     // Now try to create the main client again
-    const client = await Client.create(eoaSigner, clientOptions) as Client;
+    const client = (await Client.create(eoaSigner, clientOptions)) as Client;
     console.log("✅ XMTP client created successfully after revocation");
-    
+
     return client;
   }
 }
 
 export class XMTPInstallationLimitError extends Error {
-  constructor(message: string, public autoRevokeAvailable: boolean) {
+  constructor(
+    message: string,
+    public autoRevokeAvailable: boolean,
+  ) {
     super(message);
     this.name = "XMTPInstallationLimitError";
   }
@@ -172,7 +206,9 @@ export class XMTPInstallationLimitError extends Error {
     ];
 
     if (this.autoRevokeAvailable) {
-      steps.push("4. Or set XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true to automatically revoke");
+      steps.push(
+        "4. Or set XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true to automatically revoke",
+      );
     }
 
     return steps;
