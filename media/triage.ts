@@ -3,6 +3,7 @@ import { requestMovie, requestTV } from "./request";
 import { searchMovies, searchTV } from "./search";
 import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
+import { RequestTracker } from "../webhook/server";
 
 // triageCurrentStep is used to, based on the given sender address and the current state of that sender's
 // workflow, return an async no-arg function that can be invoked.
@@ -11,6 +12,7 @@ export async function triageCurrentStep(
   senderAddress: `0x${string}`,
   message: DecodedMessage<string>,
   conversation: Dm,
+  requestTracker?: RequestTracker,
 ): Promise<void> {
   const sentContent = message.content?.toLowerCase();
   if (!sentContent) {
@@ -31,11 +33,11 @@ export async function triageCurrentStep(
     if (currentState) {
       switch (currentState) {
         case UserSearchState.MOVIE:
-          await requestMovie(ombiClient, senderAddress, message, conversation);
+          await requestMovie(ombiClient, senderAddress, message, conversation, requestTracker);
 
           return;
         case UserSearchState.TV:
-          await requestTV(ombiClient, senderAddress, message, conversation);
+          await requestTV(ombiClient, senderAddress, message, conversation, requestTracker);
 
           return;
       }

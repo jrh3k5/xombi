@@ -15,6 +15,7 @@ import {
   MovieSearchResult,
   TVSearchResult,
 } from "../ombi/model";
+import { RequestTracker } from "../webhook/server";
 
 // requestMovie submits a request for a movie based on the selection within the given message.
 export async function requestMovie(
@@ -22,6 +23,7 @@ export async function requestMovie(
   senderAddress: `0x${string}`,
   message: DecodedMessage<string>,
   conversation: Dm,
+  requestTracker?: RequestTracker,
 ): Promise<void> {
   const selectedMovie = getSelectedSearchResult<MovieSearchResult>(
     senderAddress,
@@ -42,6 +44,11 @@ export async function requestMovie(
     throw error;
   }
 
+  // Track the request for webhook notifications
+  if (requestTracker) {
+    requestTracker.trackRequest(selectedMovie.getId(), 'movie', senderAddress);
+  }
+
   await conversation.send(
     `Your request for '${selectedMovie.getListText()}' has been enqueued!`,
   );
@@ -55,6 +62,7 @@ export async function requestTV(
   senderAddress: `0x${string}`,
   message: DecodedMessage<string>,
   conversation: Dm,
+  requestTracker?: RequestTracker,
 ): Promise<void> {
   const selectedShow = getSelectedSearchResult<TVSearchResult>(
     senderAddress,
@@ -73,6 +81,11 @@ export async function requestTV(
     }
 
     throw error;
+  }
+
+  // Track the request for webhook notifications
+  if (requestTracker) {
+    requestTracker.trackRequest(selectedShow.getId(), 'tv', senderAddress);
   }
 
   await conversation.send(

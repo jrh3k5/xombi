@@ -56,11 +56,32 @@ Optionally, you can add:
 
 ```
 DEBUG_OMBI_SEARCH=true
+XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true
 ```
 
-...this will enable debug logging of the responses received from Ombi.
+- `DEBUG_OMBI_SEARCH=true` will enable debug logging of the responses received from Ombi.
+- `XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true` will automatically revoke ALL other XMTP installations if the limit is reached. **Use with caution** as this will disconnect all other devices/applications using this XMTP identity.
 
-By default, the bot will generate a random private key; if you want the bot to accept messages at a particular address, provide a private key as the `KEY` environmental variable.
+#### Webhook Notifications (Optional)
+
+The bot supports optional webhook notifications from Ombi to notify users when their requested content becomes available. **Webhook notifications are disabled by default.**
+
+To enable webhook notifications, add these environment variables:
+
+```
+OMBI_XOMBI_WEBHOOK_ENABLED=true
+OMBI_XOMBI_APPLICATION_KEY=<application token for webhook authentication>
+OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS=192.168.1.100,10.0.0.50
+OMBI_XOMBI_WEBHOOK_BASE_URL=http://your-server-ip:3000
+```
+
+Configuration details:
+- `OMBI_XOMBI_WEBHOOK_ENABLED=true` enables webhook notifications (required to activate webhooks)
+- `OMBI_XOMBI_APPLICATION_KEY` is used to authenticate webhook requests from Ombi. Generate with `openssl rand -hex 32`
+- `OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS` specifies which IP addresses can send webhook requests. By default, only localhost is allowed
+- `OMBI_XOMBI_WEBHOOK_BASE_URL` overrides the webhook URL registered with Ombi (optional - auto-detects if not set)
+
+When enabled, the bot will automatically register a webhook with your Ombi instance. When Ombi notifies that content is ready, you'll receive an XMTP message.
 
 ### Running the Service
 
@@ -89,8 +110,8 @@ Once you have the API key, create a `.env` file like so:
 ```
 ALLOW_LIST=<your wallet address>
 XOMBI_SIGNER_KEY=<the private key to be used by Xombi to sign XMTP messages>
+XMTP_ENCRYPTION_KEY=<encryption key for local storage, generate with: openssl rand -hex 32>
 OMBI_API_KEY=<your Ombi API key>
-OMBI_API_URL=http://ombi:3579
 USERNAME_<your wallet address>=<your username as it appears in Ombi>
 ```
 
@@ -100,4 +121,4 @@ Then run:
 docker compose up -d
 ```
 
-This will start the bot on top of the Ombi instance already running.
+This will start the bot on top of the Ombi instance already running. **Webhook notifications are enabled by default in Docker mode** - the containers can communicate directly without exposing ports to the host.
