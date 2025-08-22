@@ -1,5 +1,6 @@
 import express from 'express';
 import { Server } from 'http';
+import { log, error} from 'console';
 
 export interface WebhookPayload {
   eventType?: string;
@@ -25,8 +26,13 @@ export class WebhookServer {
   private ombiToken: string;
   private allowlistedIPs: string[];
 
-  constructor(requestTracker: RequestTracker, ombiToken: string, allowlistedIPs: string[]) {
+  constructor(requestTracker: RequestTracker, ombiToken: string, allowlistedIPs: string[], trustProxy?: boolean) {
     this.app = express();
+
+    if (trustProxy ?? false) {
+        this.app.set('trust proxy', 1);
+    }
+
     this.requestTracker = requestTracker;
     this.ombiToken = ombiToken;
     this.allowlistedIPs = allowlistedIPs;
@@ -49,7 +55,7 @@ export class WebhookServer {
   }
 
   private isValidOmbiRequest(req: express.Request): boolean {
-    // Check if request comes from localhost (where Ombi is running)
+    // Check if request comes from an allowlisted IP (where Ombi is running)
     const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
 
     let isAllowlistedIP = false
@@ -103,6 +109,9 @@ export class WebhookServer {
     const eventType = payload.eventType?.toLowerCase() || '';
     const subject = payload.subject?.toLowerCase() || '';
     const message = payload.message?.toLowerCase() || '';
+
+    // TODO: remove
+    log(`eventType is ${eventType}`)
     
     const availabilityKeywords = ['available', 'downloaded', 'ready', 'completed'];
     
