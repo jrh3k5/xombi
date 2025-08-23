@@ -42,12 +42,17 @@ describe("MemoryRequestTracker", () => {
       expect(tracker.getTrackedRequestCount()).toBe(3);
     });
 
-    it("should overwrite existing request with same ID", () => {
-      tracker.trackRequest("movie123", "movie", "0x1234567890abcdef");
-      tracker.trackRequest("movie123", "tv", "0xfedcba0987654321");
+    it("should support same provider ID with different media types", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+      tracker.trackRequest("550", "tv", "0xfedcba0987654321");
 
-      expect(tracker.getTrackedRequestCount()).toBe(1);
-      expect(tracker.getRequester("movie123")).toBe("0xfedcba0987654321");
+      expect(tracker.getTrackedRequestCount()).toBe(2);
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBe(
+        "0x1234567890abcdef",
+      );
+      expect(tracker.getRequesterByProviderId("550", "tv")).toBe(
+        "0xfedcba0987654321",
+      );
     });
   });
 
@@ -215,6 +220,97 @@ describe("MemoryRequestTracker", () => {
       expect(tracker.getTrackedRequestCount()).toBe(0);
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining("Cleaned up"),
+      );
+    });
+  });
+
+  describe("getRequesterByProviderId", () => {
+    it("should return requester for existing provider ID and media type", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+      tracker.trackRequest("551", "tv", "0xfedcba0987654321");
+
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBe(
+        "0x1234567890abcdef",
+      );
+      expect(tracker.getRequesterByProviderId("551", "tv")).toBe(
+        "0xfedcba0987654321",
+      );
+    });
+
+    it("should return undefined for non-existent provider ID", () => {
+      expect(tracker.getRequesterByProviderId("999", "movie")).toBeUndefined();
+    });
+
+    it("should return undefined for wrong media type", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+
+      expect(tracker.getRequesterByProviderId("550", "tv")).toBeUndefined();
+    });
+
+    it("should support multiple requests for same provider ID with different media types", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+      tracker.trackRequest("550", "tv", "0xfedcba0987654321");
+
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBe(
+        "0x1234567890abcdef",
+      );
+      expect(tracker.getRequesterByProviderId("550", "tv")).toBe(
+        "0xfedcba0987654321",
+      );
+    });
+  });
+
+  describe("removeRequestByProviderId", () => {
+    it("should remove request by provider ID and media type", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+      tracker.trackRequest("551", "tv", "0xfedcba0987654321");
+
+      tracker.removeRequestByProviderId("550", "movie");
+
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBeUndefined();
+      expect(tracker.getRequesterByProviderId("551", "tv")).toBe(
+        "0xfedcba0987654321",
+      );
+      expect(tracker.getTrackedRequestCount()).toBe(1);
+      expect(console.log).toHaveBeenCalledWith(
+        "Removed tracking for movie provider ID 550",
+      );
+    });
+
+    it("should not remove request with wrong media type", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+
+      tracker.removeRequestByProviderId("550", "tv");
+
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBe(
+        "0x1234567890abcdef",
+      );
+      expect(tracker.getTrackedRequestCount()).toBe(1);
+    });
+
+    it("should handle non-existent provider ID gracefully", () => {
+      tracker.removeRequestByProviderId("999", "movie");
+
+      expect(tracker.getTrackedRequestCount()).toBe(0);
+      expect(console.log).not.toHaveBeenCalledWith(
+        expect.stringContaining("Removed tracking for"),
+      );
+    });
+
+    it("should remove exact provider ID and media type match", () => {
+      tracker.trackRequest("550", "movie", "0x1234567890abcdef");
+      tracker.trackRequest("550", "tv", "0xfedcba0987654321"); // Different media type
+
+      tracker.removeRequestByProviderId("550", "movie");
+
+      // Should have removed only the movie, leaving the TV request
+      expect(tracker.getTrackedRequestCount()).toBe(1);
+      expect(tracker.getRequesterByProviderId("550", "movie")).toBeUndefined();
+      expect(tracker.getRequesterByProviderId("550", "tv")).toBe(
+        "0xfedcba0987654321",
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Removed tracking for movie provider ID 550",
       );
     });
   });

@@ -1,29 +1,71 @@
 import request from "supertest";
 import { WebhookServer, WebhookPayload, RequestTracker } from "./server";
 
+interface MockTrackedRequest {
+  requestId: string;
+  mediaType: "movie" | "tv";
+  requesterAddress: string;
+}
+
 // Mock request tracker implementation for testing
 class MockRequestTracker implements RequestTracker {
-  private requests: Map<string, string> = new Map();
+  private requests: Map<string, MockTrackedRequest> = new Map();
 
   trackRequest(
     requestId: string,
     mediaType: "movie" | "tv",
     requesterAddress: string,
   ): void {
-    this.requests.set(requestId, requesterAddress);
+    this.requests.set(requestId, { requestId, mediaType, requesterAddress });
   }
 
   getRequester(requestId: string): string | undefined {
-    return this.requests.get(requestId);
+    return this.requests.get(requestId)?.requesterAddress;
+  }
+
+  getRequesterByProviderId(
+    providerId: string,
+    mediaType: "movie" | "tv",
+  ): string | undefined {
+    for (const request of this.requests.values()) {
+      if (request.requestId === providerId && request.mediaType === mediaType) {
+        return request.requesterAddress;
+      }
+    }
+    return undefined;
   }
 
   removeRequest(requestId: string): void {
     this.requests.delete(requestId);
   }
 
-  // Helper method for tests
-  setRequester(requestId: string, address: string): void {
-    this.requests.set(requestId, address);
+  removeRequestByProviderId(
+    providerId: string,
+    mediaType: "movie" | "tv",
+  ): void {
+    let keyToRemove: string | null = null;
+    for (const [key, request] of this.requests.entries()) {
+      if (request.requestId === providerId && request.mediaType === mediaType) {
+        keyToRemove = key;
+        break;
+      }
+    }
+    if (keyToRemove) {
+      this.requests.delete(keyToRemove);
+    }
+  }
+
+  // Helper methods for tests
+  setRequester(
+    requestId: string,
+    address: string,
+    mediaType: "movie" | "tv" = "movie",
+  ): void {
+    this.requests.set(requestId, {
+      requestId,
+      mediaType,
+      requesterAddress: address,
+    });
   }
 
   hasRequest(requestId: string): boolean {
@@ -164,13 +206,15 @@ describe("WebhookServer", () => {
 
   describe("webhook payload processing", () => {
     beforeEach(() => {
-      // Set up mock request in tracker
-      mockRequestTracker.setRequester("123", "0x1234567890abcdef");
+      // Set up mock request in tracker - using provider ID
+      mockRequestTracker.setRequester("550", "0x1234567890abcdef", "movie");
+      mockRequestTracker.setRequester("551", "0x1234567890abcdef", "tv");
     });
 
     it("should process availability notification with movie", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
         title: "The Matrix",
         type: "movie",
         requestStatus: "Available",
@@ -190,12 +234,13 @@ describe("WebhookServer", () => {
       expect(console.log).toHaveBeenCalledWith(
         "Sent notification to 0x1234567890abcdef for The Matrix (available)",
       );
-      expect(mockRequestTracker.hasRequest("123")).toBe(false); // Should be removed after notification
+      expect(mockRequestTracker.hasRequest("550")).toBe(false); // Should be removed after notification
     });
 
     it("should process availability notification with TV show", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "551",
         title: "Breaking Bad",
         type: "tv",
         requestStatus: "Available",
@@ -217,6 +262,7 @@ describe("WebhookServer", () => {
     it("should process denied notification", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
         title: "Denied Movie",
         type: "movie",
         requestStatus: "Denied",
@@ -237,12 +283,14 @@ describe("WebhookServer", () => {
       expect(console.log).toHaveBeenCalledWith(
         "Sent notification to 0x1234567890abcdef for Denied Movie (denied)",
       );
-      expect(mockRequestTracker.hasRequest("123")).toBe(false); // Should be removed after notification
+      expect(mockRequestTracker.hasRequest("550")).toBe(false); // Should be removed after notification
     });
 
     it("should use Unknown as fallback when no title provided", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
+        type: "movie",
         requestStatus: "Available",
         notificationType: "MediaAvailable",
       };
@@ -255,7 +303,7 @@ describe("WebhookServer", () => {
 
       expect(mockNotificationHandler).toHaveBeenCalledWith(
         "0x1234567890abcdef",
-        '🎉 Your content "Unknown" is now available!',
+        '🎉 Your movie "Unknown" is now available!',
       );
     });
 
@@ -273,11 +321,13 @@ describe("WebhookServer", () => {
         .expect(200);
 
       expect(mockNotificationHandler).not.toHaveBeenCalled();
-      expect(mockRequestTracker.hasRequest("123")).toBe(true); // Should not be removed
+      expect(mockRequestTracker.hasRequest("550")).toBe(true); // Should not be removed
     });
 
-    it("should ignore notifications without request ID", async () => {
+    it("should ignore notifications without provider ID", async () => {
       const payload: WebhookPayload = {
+        requestId: 123,
+        type: "movie",
         requestStatus: "Available",
         title: "Some movie",
         notificationType: "MediaAvailable",
@@ -292,9 +342,11 @@ describe("WebhookServer", () => {
       expect(mockNotificationHandler).not.toHaveBeenCalled();
     });
 
-    it("should ignore notifications for unknown request ID", async () => {
+    it("should ignore notifications for unknown provider ID", async () => {
       const payload: WebhookPayload = {
-        requestId: 999, // Not in tracker
+        requestId: 999,
+        providerId: "999", // Not in tracker
+        type: "movie",
         requestStatus: "Available",
         title: "Unknown movie",
         notificationType: "MediaAvailable",
@@ -308,7 +360,7 @@ describe("WebhookServer", () => {
 
       expect(mockNotificationHandler).not.toHaveBeenCalled();
       expect(console.log).toHaveBeenCalledWith(
-        "No requester found for request ID: 999",
+        "No requester found for provider ID: 999 (movie)",
       );
     });
 
@@ -317,6 +369,7 @@ describe("WebhookServer", () => {
 
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
         requestStatus: "Available",
         title: "Test Movie",
         type: "movie",
@@ -333,12 +386,14 @@ describe("WebhookServer", () => {
         "Failed to send notification to 0x1234567890abcdef:",
         expect.any(Error),
       );
-      expect(mockRequestTracker.hasRequest("123")).toBe(true); // Should not be removed on error
+      expect(mockRequestTracker.hasRequest("550")).toBe(true); // Should not be removed on error
     });
 
     it("should notify for Available status", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
+        type: "movie",
         requestStatus: "Available",
         title: "Test Content",
         notificationType: "MediaAvailable",
@@ -356,6 +411,8 @@ describe("WebhookServer", () => {
     it("should notify for Denied status", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
+        type: "movie",
         requestStatus: "Denied",
         title: "Test Content",
         notificationType: "RequestDenied",
@@ -448,6 +505,8 @@ describe("WebhookServer", () => {
 
       const payload: WebhookPayload = {
         requestId: 123,
+        providerId: "550",
+        type: "movie",
         requestStatus: "Available",
         notificationType: "MediaAvailable",
       };

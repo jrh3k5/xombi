@@ -47,7 +47,15 @@ export interface RequestTracker {
     requesterAddress: string,
   ): void;
   getRequester(requestId: string): string | undefined;
+  getRequesterByProviderId(
+    providerId: string,
+    mediaType: "movie" | "tv",
+  ): string | undefined;
   removeRequest(requestId: string): void;
+  removeRequestByProviderId(
+    providerId: string,
+    mediaType: "movie" | "tv",
+  ): void;
 }
 
 export class WebhookServer {
@@ -212,16 +220,42 @@ export class WebhookServer {
     return requestStatus === "available" || requestStatus === "denied";
   }
 
+  private getMediaTypeFromPayload(
+    payload: WebhookPayload,
+  ): "movie" | "tv" | null {
+    const type = payload.type?.toLowerCase();
+    if (type === "movie") {
+      return "movie";
+    } else if (type === "tv" || type === "tvshow") {
+      return "tv";
+    }
+    return null;
+  }
+
   private async handleUserNotification(payload: WebhookPayload) {
-    if (!payload.requestId || !this.notificationHandler) {
+    if (!payload.providerId || !this.notificationHandler) {
       return;
     }
 
-    const requestId = payload.requestId.toString();
-    const requesterAddress = this.requestTracker.getRequester(requestId);
+    const providerId = payload.providerId;
+    const mediaType = this.getMediaTypeFromPayload(payload);
+
+    if (!mediaType) {
+      console.log(
+        `Unable to determine media type from payload for provider ID: ${providerId}`,
+      );
+      return;
+    }
+
+    const requesterAddress = this.requestTracker.getRequesterByProviderId(
+      providerId,
+      mediaType,
+    );
 
     if (!requesterAddress) {
-      console.log(`No requester found for request ID: ${requestId}`);
+      console.log(
+        `No requester found for provider ID: ${providerId} (${mediaType})`,
+      );
       return;
     }
 
@@ -240,7 +274,7 @@ export class WebhookServer {
 
     try {
       await this.notificationHandler(requesterAddress, notificationMessage);
-      this.requestTracker.removeRequest(requestId);
+      this.requestTracker.removeRequestByProviderId(providerId, mediaType);
       console.log(
         `Sent notification to ${requesterAddress} for ${mediaTitle} (${requestStatus})`,
       );
