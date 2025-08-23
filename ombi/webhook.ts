@@ -144,36 +144,4 @@ export class WebhookManager {
       return false;
     }
   }
-
-  async testWebhook(): Promise<boolean> {
-    try {
-      const currentSettings = await this.getCurrentWebhookSettings();
-
-      if (!currentSettings.enabled || !currentSettings.webhookUrl) {
-        console.log("No webhook configured to test");
-        return false;
-      }
-
-      const response = await axios.post(
-        `${this.ombiApiUrl}/api/v1/Tester/webhook`,
-        {
-          enabled: currentSettings.enabled,
-          webhookUrl: currentSettings.webhookUrl,
-          applicationToken: currentSettings.applicationToken,
-        },
-        {
-          headers: {
-            ApiKey: this.ombiApiKey,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      console.log("Webhook test response:", response.status);
-      return response.status === 200;
-    } catch (error) {
-      console.error("Error testing webhook:", error);
-      return false;
-    }
-  }
 }

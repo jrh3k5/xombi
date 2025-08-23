@@ -54,6 +54,17 @@ describe("MemoryRequestTracker", () => {
         "0xfedcba0987654321",
       );
     });
+
+    it("should automatically call cleanup when tracking requests", () => {
+      const cleanupSpy = jest.spyOn(tracker, "cleanup");
+
+      tracker.trackRequest("movie123", "movie", "0x1234567890abcdef");
+
+      expect(cleanupSpy).toHaveBeenCalledWith();
+      expect(tracker.getTrackedRequestCount()).toBe(1);
+
+      cleanupSpy.mockRestore();
+    });
   });
 
   describe("getRequester", () => {

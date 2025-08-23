@@ -21,6 +21,7 @@ export class MemoryRequestTracker implements RequestTracker {
   /**
    * Track a media request by its provider ID, associating it with a requester address.
    * Uses composite keys to support the same provider ID for different media types.
+   * Automatically cleans up old requests when adding new ones.
    * @param requestId The provider ID (e.g., TheMovieDB ID) of the requested media
    * @param mediaType The type of media being requested (movie or tv)
    * @param requesterAddress The wallet address of the user making the request
@@ -30,6 +31,9 @@ export class MemoryRequestTracker implements RequestTracker {
     mediaType: "movie" | "tv",
     requesterAddress: string,
   ): void {
+    // Clean up old requests before adding new one
+    this.cleanup();
+
     const request: TrackedRequest = {
       requestId,
       mediaType,
