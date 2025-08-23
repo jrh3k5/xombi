@@ -703,7 +703,7 @@ describe("WebhookServer", () => {
       await debugServer.stop();
     });
 
-    it("should use regular logging when debug is disabled", async () => {
+    it("should not log webhook details when debug is disabled", async () => {
       const normalServer = new WebhookServer(
         mockRequestTracker,
         mockOmbiToken,
@@ -724,16 +724,16 @@ describe("WebhookServer", () => {
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
-      expect(console.log).toHaveBeenCalledWith(
-        "Received webhook:",
-        JSON.stringify(payload, null, 2),
-      );
       expect(console.log).not.toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+      expect(console.log).not.toHaveBeenCalledWith(
+        "Received webhook:",
+        expect.any(String),
+      );
 
       await normalServer.stop();
     });
 
-    it("should use regular logging when debug is not specified (defaults to false)", async () => {
+    it("should not log webhook details when debug is not specified (defaults to false)", async () => {
       const normalServer = new WebhookServer(
         mockRequestTracker,
         mockOmbiToken,
@@ -754,11 +754,11 @@ describe("WebhookServer", () => {
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
-      expect(console.log).toHaveBeenCalledWith(
-        "Received webhook:",
-        JSON.stringify(payload, null, 2),
-      );
       expect(console.log).not.toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+      expect(console.log).not.toHaveBeenCalledWith(
+        "Received webhook:",
+        expect.any(String),
+      );
 
       await normalServer.stop();
     });

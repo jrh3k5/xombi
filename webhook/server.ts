@@ -148,7 +148,6 @@ export class WebhookServer {
   private async handleWebhook(req: express.Request, res: express.Response) {
     try {
       const payload = req.body as WebhookPayload;
-      console.log("Received webhook:", JSON.stringify(payload, null, 2));
 
       if (this.isTestNotification(payload)) {
         this.handleTestNotification();
