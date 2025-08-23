@@ -9,10 +9,10 @@ jest.mock("../lib/conversation_member", () => ({
 describe("XMTPNotifier", () => {
   let notifier: XMTPNotifier;
   let mockXmtpClient: jest.Mocked<Client>;
-  let mockXmtpClientConversationsListFn: jest.Mock<any, any, any>;
+  let mockXmtpClientConversationsListFn: jest.Mock;
   let mockConversation: jest.Mocked<Dm>;
-  let mockConversationSendFn: jest.Mock<any, any, any>;
-  let mockMember: any;
+  let mockConversationSendFn: jest.Mock;
+  let mockMember: GroupMember;
 
   const testAddress = "0x1234567890abcdef";
   const testMessage = "Test notification message";
@@ -25,7 +25,7 @@ describe("XMTPNotifier", () => {
       conversations: {
         list: mockXmtpClientConversationsListFn,
       },
-    } as any;
+    } as unknown as jest.Mocked<Client>;
 
     mockConversationSendFn = jest.fn();
 
@@ -33,13 +33,13 @@ describe("XMTPNotifier", () => {
     mockConversation = {
       members: jest.fn(),
       send: mockConversationSendFn,
-    } as any;
+    } as unknown as jest.Mocked<Dm>;
 
     // Mock Member
     mockMember = {
       inboxId: "test-inbox-id",
       addresses: [testAddress],
-    } as any;
+    } as unknown as GroupMember;
 
     notifier = new XMTPNotifier(mockXmtpClient);
 
@@ -62,9 +62,9 @@ describe("XMTPNotifier", () => {
 
   describe("sendNotification", () => {
     beforeEach(() => {
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember.mockReturnValue([testAddress]);
     });
 
@@ -91,7 +91,7 @@ describe("XMTPNotifier", () => {
       mockConversationSendFn.mockResolvedValue(undefined);
 
       // Add send method to conversation to make it a Dm
-      (mockConversation as any).send = jest.fn().mockResolvedValue(undefined);
+      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress, testMessage);
 
@@ -108,15 +108,15 @@ describe("XMTPNotifier", () => {
 
     it("should handle case insensitive address matching", async () => {
       const upperCaseAddress = testAddress.toUpperCase();
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember.mockReturnValue([upperCaseAddress]);
 
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      (mockConversation as any).send = jest.fn().mockResolvedValue(undefined);
+      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress.toLowerCase(), testMessage);
 
@@ -138,7 +138,7 @@ describe("XMTPNotifier", () => {
       ]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      (mockConversation as any).send = jest.fn().mockResolvedValue(undefined);
+      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress, testMessage);
 
@@ -149,14 +149,14 @@ describe("XMTPNotifier", () => {
     });
 
     it("should handle multiple members in conversation", async () => {
-      const otherMember: jest.Mocked<GroupMember> = {
+      const otherMember: GroupMember = {
         inboxId: "other-inbox-id",
         addresses: ["0xother"],
-      } as any;
+      } as unknown as GroupMember;
 
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember
         .mockReturnValueOnce(["0xother"]) // First member
         .mockReturnValueOnce([testAddress]); // Second member (target)
@@ -164,7 +164,7 @@ describe("XMTPNotifier", () => {
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([otherMember, mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      (mockConversation as any).send = jest.fn().mockResolvedValue(undefined);
+      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress, testMessage);
 
@@ -176,9 +176,9 @@ describe("XMTPNotifier", () => {
     });
 
     it("should handle no existing conversation found", async () => {
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember.mockReturnValue(["0xother"]); // Different address
 
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
@@ -257,9 +257,9 @@ describe("XMTPNotifier", () => {
     });
 
     it("should handle getEthereumAddressesOfMember returning empty array", async () => {
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember.mockReturnValue([]); // No addresses
 
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
@@ -276,7 +276,7 @@ describe("XMTPNotifier", () => {
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      (mockConversation as any).send = jest.fn().mockResolvedValue(undefined);
+      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       // First call - should list conversations
       await notifier.sendNotification(testAddress, testMessage);
@@ -339,11 +339,11 @@ describe("XMTPNotifier", () => {
       const memberWithoutAddresses = {
         inboxId: "test-inbox-id",
         addresses: undefined,
-      } as any;
+      } as unknown as GroupMember;
 
-      const {
-        getEthereumAddressesOfMember,
-      } = require("../lib/conversation_member");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "../lib/conversation_member",
+      );
       getEthereumAddressesOfMember.mockReturnValue([]);
 
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);

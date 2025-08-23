@@ -437,7 +437,7 @@ describe("WebhookServer", () => {
 
   describe("error handling", () => {
     it("should handle invalid JSON payload", async () => {
-      const response = await request(server["app"])
+      await request(server["app"])
         .post("/webhook")
         .send("invalid json")
         .set("Authorization", `Bearer ${mockOmbiToken}`)
