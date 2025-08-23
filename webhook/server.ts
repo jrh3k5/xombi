@@ -2,13 +2,42 @@ import express from "express";
 import { Server } from "http";
 
 export interface WebhookPayload {
-  eventType?: string;
-  subject?: string;
-  message?: string;
-  image?: string;
-  mediaType?: string;
-  requestId?: number;
-  requestType?: string;
+  requestId?: number | null;
+  requestedUser?: string | null;
+  title?: string | null;
+  requestedDate?: string | null;
+  type?: string | null;
+  additionalInformation?: string | null;
+  longDate?: string | null;
+  shortDate?: string | null;
+  longTime?: string | null;
+  shortTime?: string | null;
+  overview?: string | null;
+  year?: number | null;
+  episodesList?: string | null;
+  seasonsList?: string | null;
+  posterImage?: string | null;
+  applicationName?: string | null;
+  applicationUrl?: string | null;
+  issueDescription?: string | null;
+  issueCategory?: string | null;
+  issueStatus?: string | null;
+  issueSubject?: string | null;
+  newIssueComment?: string | null;
+  issueUser?: string | null;
+  userName?: string | null;
+  alias?: string | null;
+  requestedByAlias?: string | null;
+  userPreference?: string | null;
+  denyReason?: string | null;
+  availableDate?: string | null;
+  requestStatus?: string | null;
+  providerId?: string | null;
+  partiallyAvailableEpisodeNumbers?: string | null;
+  partiallyAvailableSeasonNumber?: number | null;
+  partiallyAvailableEpisodesList?: string | null;
+  partiallyAvailableEpisodeCount?: number | null;
+  notificationType?: string | null;
 }
 
 export interface RequestTracker {
@@ -151,8 +180,8 @@ export class WebhookServer {
 
       if (this.isTestNotification(payload)) {
         this.handleTestNotification();
-      } else if (this.isAvailabilityNotification(payload)) {
-        await this.handleAvailabilityNotification(payload);
+      } else if (this.isNotificationForUser(payload)) {
+        await this.handleUserNotification(payload);
       }
 
       res.status(200).json({ received: true });
@@ -179,35 +208,20 @@ export class WebhookServer {
   }
 
   private isTestNotification(payload: WebhookPayload): boolean {
-    const eventType = payload.eventType?.toLowerCase() || "";
-    return eventType === "test";
+    const notificationType = payload.notificationType?.toLowerCase() || "";
+    return notificationType === "test";
   }
 
   private handleTestNotification(): void {
     console.log("🎉 Webhook test notification received successfully!");
   }
 
-  private isAvailabilityNotification(payload: WebhookPayload): boolean {
-    const eventType = payload.eventType?.toLowerCase() || "";
-    const subject = payload.subject?.toLowerCase() || "";
-    const message = payload.message?.toLowerCase() || "";
-
-    const availabilityKeywords = [
-      "available",
-      "downloaded",
-      "ready",
-      "completed",
-    ];
-
-    return availabilityKeywords.some(
-      (keyword) =>
-        eventType.includes(keyword) ||
-        subject.includes(keyword) ||
-        message.includes(keyword),
-    );
+  private isNotificationForUser(payload: WebhookPayload): boolean {
+    const requestStatus = payload.requestStatus?.toLowerCase() || "";
+    return requestStatus === "available" || requestStatus === "denied";
   }
 
-  private async handleAvailabilityNotification(payload: WebhookPayload) {
+  private async handleUserNotification(payload: WebhookPayload) {
     if (!payload.requestId || !this.notificationHandler) {
       return;
     }
@@ -220,28 +234,31 @@ export class WebhookServer {
       return;
     }
 
-    const mediaTitle = this.extractMediaTitle(payload);
-    const notificationMessage = `🎉 Your ${payload.mediaType || "content"} "${mediaTitle}" is now available!`;
+    const mediaTitle = payload.title || "Unknown";
+    const requestStatus = payload.requestStatus?.toLowerCase() || "";
+
+    let notificationMessage: string;
+    if (requestStatus === "available") {
+      notificationMessage = `🎉 Your ${payload.type || "content"} "${mediaTitle}" is now available!`;
+    } else if (requestStatus === "denied") {
+      const reason = payload.denyReason ? ` Reason: ${payload.denyReason}` : "";
+      notificationMessage = `❌ Your request for "${mediaTitle}" has been denied.${reason}`;
+    } else {
+      return; // Shouldn't happen as we check in isNotificationForUser
+    }
 
     try {
       await this.notificationHandler(requesterAddress, notificationMessage);
       this.requestTracker.removeRequest(requestId);
-      console.log(`Sent notification to ${requesterAddress} for ${mediaTitle}`);
+      console.log(
+        `Sent notification to ${requesterAddress} for ${mediaTitle} (${requestStatus})`,
+      );
     } catch (error) {
       console.error(
         `Failed to send notification to ${requesterAddress}:`,
         error,
       );
     }
-  }
-
-  private extractMediaTitle(payload: WebhookPayload): string {
-    if (payload.subject) {
-      const match = payload.subject.match(/"([^"]+)"/);
-      if (match) return match[1];
-    }
-
-    return payload.subject || payload.message || "Unknown";
   }
 
   public setNotificationHandler(

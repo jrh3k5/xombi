@@ -63,8 +63,9 @@ describe("WebhookServer", () => {
   describe("middleware and security", () => {
     it("should accept requests from allowlisted IP with valid token", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -79,8 +80,9 @@ describe("WebhookServer", () => {
 
     it("should accept requests with access-token header", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -95,8 +97,9 @@ describe("WebhookServer", () => {
 
     it("should reject requests from non-allowlisted IP", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -115,8 +118,9 @@ describe("WebhookServer", () => {
 
     it("should reject requests with invalid token", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -131,8 +135,9 @@ describe("WebhookServer", () => {
 
     it("should reject requests without token", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -154,8 +159,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(testServer["app"])
@@ -180,8 +186,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(testServer["app"])
@@ -217,11 +224,11 @@ describe("WebhookServer", () => {
 
     it("should process availability notification with movie", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
-        subject: 'Movie "The Matrix" is now available',
-        message: "Your requested movie is ready for download",
-        mediaType: "movie",
         requestId: 123,
+        title: "The Matrix",
+        type: "movie",
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(server["app"])
@@ -236,18 +243,18 @@ describe("WebhookServer", () => {
         '🎉 Your movie "The Matrix" is now available!',
       );
       expect(console.log).toHaveBeenCalledWith(
-        "Sent notification to 0x1234567890abcdef for The Matrix",
+        "Sent notification to 0x1234567890abcdef for The Matrix (available)",
       );
       expect(mockRequestTracker.hasRequest("123")).toBe(false); // Should be removed after notification
     });
 
     it("should process availability notification with TV show", async () => {
       const payload: WebhookPayload = {
-        eventType: "EpisodeAvailable",
-        subject: 'TV Show "Breaking Bad" is now available',
-        message: "Your requested episode is ready",
-        mediaType: "tv",
         requestId: 123,
+        title: "Breaking Bad",
+        type: "tv",
+        requestStatus: "Available",
+        notificationType: "EpisodeAvailable",
       };
 
       await request(server["app"])
@@ -263,11 +270,14 @@ describe("WebhookServer", () => {
       );
     });
 
-    it("should extract media title from quoted subject", async () => {
+    it("should process denied notification", async () => {
       const payload: WebhookPayload = {
-        eventType: "available",
-        subject: 'The movie "Inception" has been downloaded successfully',
         requestId: 123,
+        title: "Denied Movie",
+        type: "movie",
+        requestStatus: "Denied",
+        denyReason: "Quality not available",
+        notificationType: "RequestDenied",
       };
 
       await request(server["app"])
@@ -279,54 +289,19 @@ describe("WebhookServer", () => {
 
       expect(mockNotificationHandler).toHaveBeenCalledWith(
         "0x1234567890abcdef",
-        '🎉 Your content "Inception" is now available!',
+        '❌ Your request for "Denied Movie" has been denied. Reason: Quality not available',
       );
+      expect(console.log).toHaveBeenCalledWith(
+        "Sent notification to 0x1234567890abcdef for Denied Movie (denied)",
+      );
+      expect(mockRequestTracker.hasRequest("123")).toBe(false); // Should be removed after notification
     });
 
-    it("should use subject as fallback when no quoted title found", async () => {
+    it("should use Unknown as fallback when no title provided", async () => {
       const payload: WebhookPayload = {
-        eventType: "downloaded",
-        subject: "Movie Available",
         requestId: 123,
-      };
-
-      await request(server["app"])
-        .post("/webhook")
-        .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
-        .set("X-Forwarded-For", "127.0.0.1")
-        .expect(200);
-
-      expect(mockNotificationHandler).toHaveBeenCalledWith(
-        "0x1234567890abcdef",
-        '🎉 Your content "Movie Available" is now available!',
-      );
-    });
-
-    it("should use message as fallback when no subject", async () => {
-      const payload: WebhookPayload = {
-        eventType: "ready",
-        message: "Content is ready for viewing",
-        requestId: 123,
-      };
-
-      await request(server["app"])
-        .post("/webhook")
-        .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
-        .set("X-Forwarded-For", "127.0.0.1")
-        .expect(200);
-
-      expect(mockNotificationHandler).toHaveBeenCalledWith(
-        "0x1234567890abcdef",
-        '🎉 Your content "Content is ready for viewing" is now available!',
-      );
-    });
-
-    it("should use Unknown as fallback when no title info", async () => {
-      const payload: WebhookPayload = {
-        eventType: "completed",
-        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(server["app"])
@@ -342,11 +317,11 @@ describe("WebhookServer", () => {
       );
     });
 
-    it("should ignore non-availability notifications", async () => {
+    it("should ignore non-user notifications", async () => {
       const payload: WebhookPayload = {
-        eventType: "RequestApproved",
-        subject: "Your request has been approved",
         requestId: 123,
+        requestStatus: "ProcessingRequest",
+        notificationType: "RequestProcessing",
       };
 
       await request(server["app"])
@@ -362,8 +337,9 @@ describe("WebhookServer", () => {
 
     it("should ignore notifications without request ID", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
-        subject: "Some movie is available",
+        requestStatus: "Available",
+        title: "Some movie",
+        notificationType: "MediaAvailable",
       };
 
       await request(server["app"])
@@ -378,9 +354,10 @@ describe("WebhookServer", () => {
 
     it("should ignore notifications for unknown request ID", async () => {
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
-        subject: "Unknown movie is available",
         requestId: 999, // Not in tracker
+        requestStatus: "Available",
+        title: "Unknown movie",
+        notificationType: "MediaAvailable",
       };
 
       await request(server["app"])
@@ -400,9 +377,11 @@ describe("WebhookServer", () => {
       mockNotificationHandler.mockRejectedValue(new Error("XMTP send failed"));
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
-        subject: 'Movie "Test Movie" is available',
         requestId: 123,
+        requestStatus: "Available",
+        title: "Test Movie",
+        type: "movie",
+        notificationType: "MediaAvailable",
       };
 
       await request(server["app"])
@@ -419,80 +398,66 @@ describe("WebhookServer", () => {
       expect(mockRequestTracker.hasRequest("123")).toBe(true); // Should not be removed on error
     });
 
-    test.each([
-      ["MediaAvailable", true],
-      ["DOWNLOADED", true],
-      ["ContentReady", true],
-      ["TaskCompleted", true],
-      ["RequestApproved", false],
-      ["UserRegistered", false],
-    ])(
-      "should detect availability keywords in event type %s",
-      async (eventType: string, shouldNotify: boolean) => {
-        const payload: WebhookPayload = {
-          eventType: eventType,
-          subject: "Test Content",
-          requestId: 123,
-        };
+    it("should notify for Available status", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        title: "Test Content",
+        notificationType: "MediaAvailable",
+      };
 
-        await request(server["app"])
-          .post("/webhook")
-          .send(payload)
-          .set("Authorization", `Bearer ${mockOmbiToken}`)
-          .set("X-Forwarded-For", "127.0.0.1")
-          .expect(200);
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
 
-        if (shouldNotify) {
-          expect(mockNotificationHandler).toHaveBeenCalled();
-        } else {
-          expect(mockNotificationHandler).not.toHaveBeenCalled();
-        }
-      },
-    );
+      expect(mockNotificationHandler).toHaveBeenCalled();
+    });
 
-    test.each([
-      ["Your movie is now available", undefined, true],
-      [undefined, "Download completed successful", true],
-      ["Content ready for viewing", undefined, true],
-      [undefined, "Media has been downloaded", true],
-      ["Request approved", undefined, false],
-      [undefined, "Processing started", false],
-    ])(
-      "should detect availability keywords in subject %s and message %s",
-      async (
-        subject: string | undefined,
-        message: string | undefined,
-        shouldNotify: boolean,
-      ) => {
-        const payload: WebhookPayload = {
-          eventType: "TestEvent",
-          subject: subject,
-          message: message,
-          requestId: 123,
-        };
+    it("should notify for Denied status", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Denied",
+        title: "Test Content",
+        notificationType: "RequestDenied",
+      };
 
-        await request(server["app"])
-          .post("/webhook")
-          .send(payload)
-          .set("Authorization", `Bearer ${mockOmbiToken}`)
-          .set("X-Forwarded-For", "127.0.0.1")
-          .expect(200);
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
 
-        if (shouldNotify) {
-          expect(mockNotificationHandler).toHaveBeenCalled();
-        } else {
-          expect(mockNotificationHandler).not.toHaveBeenCalled();
-        }
-      },
-    );
+      expect(mockNotificationHandler).toHaveBeenCalled();
+    });
+
+    it("should not notify for PendingApproval status", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "PendingApproval",
+        title: "Test Content",
+        notificationType: "RequestPending",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).not.toHaveBeenCalled();
+    });
   });
 
   describe("test notifications", () => {
     it("should handle test notifications with success message", async () => {
       const payload: WebhookPayload = {
-        eventType: "test",
-        subject: "Webhook test",
-        message: "This is a test notification",
+        notificationType: "test",
+        title: "Webhook test",
       };
 
       const response = await request(server["app"])
@@ -509,11 +474,10 @@ describe("WebhookServer", () => {
       expect(mockNotificationHandler).not.toHaveBeenCalled(); // Should not send XMTP notification
     });
 
-    it("should handle test notifications with case insensitive eventType", async () => {
+    it("should handle test notifications with case insensitive notificationType", async () => {
       const payload: WebhookPayload = {
-        eventType: "TEST", // uppercase
-        subject: "Webhook test",
-        message: "This is a test notification",
+        notificationType: "TEST", // uppercase
+        title: "Webhook test",
       };
 
       const response = await request(server["app"])
@@ -551,8 +515,9 @@ describe("WebhookServer", () => {
       });
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(server["app"])
@@ -624,9 +589,10 @@ describe("WebhookServer", () => {
       mockRequestTracker.setRequester("123", "0x1234567890abcdef");
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
-        subject: "Test movie available",
         requestId: 123,
+        requestStatus: "Available",
+        title: "Test movie",
+        notificationType: "MediaAvailable",
       };
 
       const response = await request(serverWithoutHandler["app"])
@@ -652,8 +618,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(debugServer["app"])
@@ -713,8 +680,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(normalServer["app"])
@@ -743,8 +711,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(normalServer["app"])
@@ -773,8 +742,9 @@ describe("WebhookServer", () => {
       );
 
       const payload: WebhookPayload = {
-        eventType: "MediaAvailable",
         requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
       };
 
       await request(debugServer["app"])
