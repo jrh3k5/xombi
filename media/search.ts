@@ -7,7 +7,6 @@ import {
 import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
-// searchMovies executes a movie search for the given message
 /**
  * Search for movies using Ombi and display results to the user.
  * Updates user state with search results for subsequent selection.
@@ -39,7 +38,6 @@ export async function searchMovies(
   );
 }
 
-// searchTV executs a TV show search for the given message
 /**
  * Search for TV shows using Ombi and display results to the user.
  * Updates user state with search results for subsequent selection.
@@ -71,6 +69,15 @@ export async function searchTV(
   );
 }
 
+/**
+ * Formats and displays the given search results into the given conversation.
+ * @param senderAddress The address of the user who originally submitted the search.
+ * @param conversation The conversation to which the search results are to be sent.
+ * @param searchResults The results to be formatted and sent to the conversation.
+ * @param endState The state into which the user is to be placed within internal tracking.
+ * @param suffixStrings Any text to be shown in the message after the formatted search results.
+ * @returns A Promise that will resolve upon completion.
+ */
 async function showSearchResults(
   senderAddress: `0x${string}`,
   conversation: Dm,

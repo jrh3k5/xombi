@@ -11,15 +11,31 @@ import { WebhookInitializer } from "./webhook_initializer";
 import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";
 
+/**
+ * Configuation for the application.
+ */
 export interface AppConfig {
+  /**
+   * The Ethereum addresses of accounts that are allowed to communicate with the bot.
+   */
   allowedAddresses: string[];
 }
 
+/**
+ * A class used to initialize and run the application.
+ */
 export class AppInitializer {
+  /**
+   * Initializes the environment, reading from configuration.
+   */
   static initializeEnvironment(): void {
     dotenv.config();
   }
 
+  /**
+   * Parses available configuration into an AppConfig instance.
+   * @returns An AppConfig built out of the currently-available configuration.
+   */
   static parseAppConfig(): AppConfig {
     let allowedAddresses: string[] = [];
     const envAllowlist = process.env.ALLOW_LIST;
@@ -33,6 +49,9 @@ export class AppInitializer {
     return { allowedAddresses };
   }
 
+  /**
+   * Initializes the application, including the configuration.
+   */
   static async initialize(): Promise<void> {
     this.initializeEnvironment();
 
@@ -89,6 +108,13 @@ export class AppInitializer {
     );
   }
 
+  /**
+   * Starts the loop to listen for messages to the bot.
+   * @param xmtpClient A Client used to interact with users over XMTP.
+   * @param allowedAddresses A list of Ethereum addresses that are authorized to communicate with this bot.
+   * @param ombiClient A client used to interact with Ombi.
+   * @param requestTracker A tracker used to know who to contact when a particular request has completed.
+   */
   static async startMessageProcessingLoop(
     xmtpClient: Client,
     allowedAddresses: string[],

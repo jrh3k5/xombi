@@ -35,7 +35,6 @@ describe("WebhookManager", () => {
         enabled: true,
         webhookUrl: "http://192.168.1.100:3000/webhook",
         applicationToken: "test-token",
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockSettings });
@@ -72,7 +71,6 @@ describe("WebhookManager", () => {
         enabled: false,
         webhookUrl: null,
         applicationToken: null,
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -108,7 +106,6 @@ describe("WebhookManager", () => {
         enabled: false,
         webhookUrl: null,
         applicationToken: null,
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -138,7 +135,6 @@ describe("WebhookManager", () => {
         enabled: true,
         webhookUrl: mockWebhookUrl,
         applicationToken: "existing-token",
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -160,7 +156,6 @@ describe("WebhookManager", () => {
         enabled: true,
         webhookUrl: "http://old-url:3000/webhook",
         applicationToken: "existing-token",
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -180,7 +175,6 @@ describe("WebhookManager", () => {
         enabled: false,
         webhookUrl: null,
         applicationToken: null,
-        id: 1,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -200,7 +194,6 @@ describe("WebhookManager", () => {
         enabled: false,
         webhookUrl: null,
         applicationToken: null,
-        id: 1,
       };
 
       const mockError = new Error("Registration failed");
@@ -287,7 +280,6 @@ describe("WebhookManager", () => {
       enabled: true,
       webhookUrl: "http://192.168.1.100:3000/webhook",
       applicationToken: "test-token",
-      id: 1,
     };
 
     it("should test webhook successfully", async () => {

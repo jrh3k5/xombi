@@ -5,20 +5,56 @@ import { convertEOAToSigner } from "./eoa";
 import { Signer } from "@xmtp/node-sdk";
 import { privateKeyToAccount } from "viem/accounts";
 
+/**
+ * The configuration of an XMTP client to be created by the factory.
+ */
 export interface XMTPConfig {
+  /**
+   * The key used to sign XMTP messages sent using the client.
+   */
   signerKey: `0x${string}`;
+  /**
+   * The key used to encrypt the local storage of messages.
+   */
   encryptionKey: `0x${string}`;
+  /**
+   * The XMTP environment to which this agent should connect.
+   */
   environment: XmtpEnv;
+  /**
+   * true if installations should be auto-revoked if the max number of
+   * installations has been met or exceeded; anything else will not auto-revoke
+   * installations in such cases.
+   */
   autoRevokeInstallations?: boolean;
 }
 
+/**
+ * The result of creating an XMTP client.
+ */
 export interface XMTPClientCreationResult {
+  /**
+   * The client that was created.
+   */
   client: Client;
+  /**
+   * The account for the created client.
+   */
   account: ReturnType<typeof privateKeyToAccount>;
+  /**
+   * The environment to which the client is connected.
+   */
   environment: XmtpEnv;
 }
 
+/**
+ * A factory used to produce XMTP clients.
+ */
 export class XMTPClientFactory {
+  /**
+   * Validates that the necessary data within the given configuration is present and correctly formatted.
+   * @param config The configuration to be validated
+   */
   static validateConfig(config: XMTPConfig): void {
     if (!config.signerKey) {
       throw new Error(
@@ -35,6 +71,10 @@ export class XMTPClientFactory {
     }
   }
 
+  /**
+   * Parses XMTP configuration from an environment.
+   * @returns An XMTPConfig built ouf the environmental configuration.
+   */
   static parseEnvironmentConfig(): XMTPConfig {
     const signerKey = process.env.XOMBI_SIGNER_KEY as `0x${string}`;
     const encryptionKey = process.env.XMTP_ENCRYPTION_KEY as `0x${string}`;
@@ -59,6 +99,11 @@ export class XMTPClientFactory {
     return config;
   }
 
+  /**
+   * Creates an XMTP client.
+   * @param config The configuration to determine the behavior of the created client.
+   * @returns A client creation result.
+   */
   static async createClient(
     config: XMTPConfig,
   ): Promise<XMTPClientCreationResult> {
@@ -189,6 +234,10 @@ export class XMTPClientFactory {
   }
 }
 
+/**
+ * An error describing when the number of installations for the client
+ * mets or exceeds the network maximum allowance.
+ */
 export class XMTPInstallationLimitError extends Error {
   constructor(
     message: string,
@@ -215,6 +264,9 @@ export class XMTPInstallationLimitError extends Error {
   }
 }
 
+/**
+ * A generic error indicating an error occurred while trying to create a client.
+ */
 export class XMTPClientCreationError extends Error {
   constructor(message: string) {
     super(message);

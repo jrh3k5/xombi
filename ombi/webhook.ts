@@ -1,12 +1,26 @@
 import axios from "axios";
 
+/**
+ * The settings that dictate how the webhook endpoint should behave.
+ */
 export interface WebhookSettings {
+  /**
+   * Determines if the webhook is enabled or disabled.
+   */
   enabled: boolean;
+  /**
+   * The URL of the webhook; should only be null if the webhook is not enabled.
+   */
   webhookUrl: string | null;
+  /**
+   * The token identifying this application to Ombi; should only be null if the webhook is not enabled.
+   */
   applicationToken: string | null;
-  id: number;
 }
 
+/**
+ * A manager that can be used to manage the state of the webhook registration within Ombi.
+ */
 export class WebhookManager {
   private ombiApiUrl: string;
   private ombiApiKey: string;
@@ -16,6 +30,10 @@ export class WebhookManager {
     this.ombiApiKey = ombiApiKey;
   }
 
+  /**
+   * Gets the current webhook settings as they are registered within Ombi.
+   * @returns The webhook settings.
+   */
   async getCurrentWebhookSettings(): Promise<WebhookSettings> {
     const response = await axios.get(
       `${this.ombiApiUrl}/api/v1/Settings/notifications/webhook`,
@@ -29,6 +47,12 @@ export class WebhookManager {
     return response.data;
   }
 
+  /**
+   * Registers a webhook with Ombi.
+   * @param webhookUrl The URL to be invoked by Ombi to interact with this agent.
+   * @param applicationToken The token identifying this agent to Ombi.
+   * @returns true if the registration succeeded; false if not.
+   */
   async registerWebhook(
     webhookUrl: string,
     applicationToken?: string,
@@ -82,6 +106,10 @@ export class WebhookManager {
     }
   }
 
+  /**
+   * Un-registers this agent's webhook from Ombi.
+   * @returns true if the un-registration succeeded; false if not.
+   */
   async unregisterWebhook(): Promise<boolean> {
     try {
       const webhookSettings: Partial<WebhookSettings> = {

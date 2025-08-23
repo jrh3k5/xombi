@@ -1,5 +1,9 @@
 import { networkInterfaces } from "os";
 
+/**
+ * Gets the IP address of the machine on which the application is currently running.
+ * @returns The IP address (if it can be resolved) of the current machine; otherwise, undefined.
+ */
 export function getLocalIPAddress(): string | undefined {
   const interfaces = networkInterfaces();
 
@@ -18,6 +22,11 @@ export function getLocalIPAddress(): string | undefined {
   return undefined;
 }
 
+/**
+ * Builds a URL to be invoked by Ombi's webhook notification.
+ * @param port The port on which this agent is listening for webhook notifications.
+ * @returns A URL that can be invoked by Ombi's webhook notification.
+ */
 export function buildWebhookURL(port: number = 3000): string {
   const localIP = getLocalIPAddress();
   if (!localIP) {

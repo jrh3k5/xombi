@@ -11,7 +11,6 @@ import {
 
 config();
 
-// newClient creates a new instance of OmbiClient that can be used to interact with Ombi.
 /**
  * Create a new HTTP-based Ombi client instance.
  * @returns A new HttpOmbiClient configured with environment settings
@@ -71,13 +70,12 @@ export interface OmbiClient {
   ): Promise<TVSearchResult[]>;
 }
 
-// OmbiClient is a client used to interact with Ombi
-export /**
+/**
  * HTTP-based implementation of the OmbiClient interface.
  * Communicates with Ombi via REST API calls and handles authentication
  * through username resolution from wallet addresses.
  */
-class HttpOmbiClient implements OmbiClient {
+export class HttpOmbiClient implements OmbiClient {
   private apiUrl: string;
   private apiKey: string;
 
