@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.x, 21.x, 22.x, 23.x, 24.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -38,6 +38,9 @@ jobs:
         run: |
           npm run lint
           git diff --exit-code
+
+      - name: Type checking
+        run: npm run typecheck
 
       - name: Run Jest tests
         run: npx jest --config jest.config.cjs --ci --runInBand --coverage --coverageThreshold='{"global":{"functions":70,"branches":70,"lines":70,"statements":70}}'

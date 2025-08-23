@@ -9,9 +9,16 @@ services:
     working_dir: /home/node/app
     environment:
       OMBI_API_URL: "http://ombi:3579"
+      OMBI_XOMBI_WEBHOOK_ENABLED: "true"
+      OMBI_XOMBI_APPLICATION_KEY: "b5b11d225485a47fd6d4e80f190519de7bac80d14b4f3810f50d18ddf4b98533"
+      OMBI_XOMBI_WEBHOOK_BASE_URL: "http://xombi:3000"
+      OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16,127.0.0.1,::1,::ffff:127.0.0.1"
       XMTP_ENV: "dev"
+      XMTP_REVOKE_ALL_OTHER_INSTALLATIONS: "true"
     env_file:
       - .env
+    networks:
+      - xombi-network
   ombi:
     image: ghcr.io/linuxserver/ombi:v4.47.1-ls215
     container_name: ombi
@@ -24,3 +31,9 @@ services:
       - ./.docker/ombi/config:/config
     ports:
       - "9753:3579"
+    networks:
+      - xombi-network
+
+networks:
+  xombi-network:
+    driver: bridge

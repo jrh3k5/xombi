@@ -12,24 +12,37 @@ class UserState {
   }
 }
 
-// UserStateContext is the context associated with a user's current state
+/**
+ * Context data associated with a user's current workflow state.
+ * Contains search results and other state-specific information.
+ */
 export class UserStateContext {
   searchResults: ListableResult[] = [];
 }
 
-// UserSearchState enumerates the possible search states in which a user exists.
+/**
+ * Enum representing the different states a user can be in during their workflow.
+ * Used to track progress through search and selection processes.
+ */
 export enum UserSearchState {
   UNSPECIFIED, // no user state is specified
   MOVIE, // the user is searching for a movie
   TV, // the user is searching for a TV series
 }
 
-// clearUserState clears the user's current state
+/**
+ * Clear all state and context for a user.
+ * @param address The wallet address of the user
+ */
 export function clearUserState(address: `0x${string}`): void {
   userStates.delete(address);
 }
 
-// getUserState gets the user's current state and the associated context
+/**
+ * Get the current state and context for a user's workflow.
+ * @param address The wallet address of the user
+ * @returns Tuple of [current state, state context or null]
+ */
 export function getUserState(
   address: string,
 ): [UserSearchState, UserStateContext | null] {
@@ -40,7 +53,12 @@ export function getUserState(
   return [userState.state, userState.context];
 }
 
-// setUserState sets the user's current state
+/**
+ * Set the state and context for a user's workflow.
+ * @param address The wallet address of the user
+ * @param state The new state to set
+ * @param context Optional context data to associate with the state
+ */
 export function setUserState(
   address: string,
   state: UserSearchState,

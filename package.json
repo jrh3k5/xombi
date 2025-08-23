@@ -7,7 +7,8 @@
   "scripts": {
     "test": "npx jest --config jest.config.cjs --coverage",
     "format": "npx prettier . --write",
-    "lint": "npx eslint ."
+    "lint": "npx eslint .",
+    "typecheck": "npx tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -20,9 +21,11 @@
   "author": "Joshua Hyde",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/express": "^5.0.3",
     "@xmtp/node-sdk": "^4.0.3",
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
+    "express": "^5.1.0",
     "viem": "^2.33.3"
   },
   "devDependencies": {
@@ -34,6 +37,7 @@
     "globals": "^16.3.0",
     "jest": "^30.0.5",
     "prettier": "^3.6.2",
+    "supertest": "^7.1.4",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
