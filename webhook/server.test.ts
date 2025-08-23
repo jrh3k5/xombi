@@ -61,7 +61,7 @@ describe("WebhookServer", () => {
   });
 
   describe("middleware and security", () => {
-    it("should accept requests from allowlisted IP with valid token", async () => {
+    it("should accept requests from allowlisted IP", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
         requestStatus: "Available",
@@ -71,24 +71,6 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
-        .set("X-Forwarded-For", "127.0.0.1")
-        .expect(200);
-
-      expect(response.body).toEqual({ received: true });
-    });
-
-    it("should accept requests with access-token header", async () => {
-      const payload: WebhookPayload = {
-        requestId: 123,
-        requestStatus: "Available",
-        notificationType: "MediaAvailable",
-      };
-
-      const response = await request(server["app"])
-        .post("/webhook")
-        .send(payload)
-        .set("access-token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -105,7 +87,6 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "192.168.1.100") // Not in allowlist
         .expect(403);
 
@@ -114,39 +95,6 @@ describe("WebhookServer", () => {
         "Rejected unauthorized webhook request from:",
         expect.any(String),
       );
-    });
-
-    it("should reject requests with invalid token", async () => {
-      const payload: WebhookPayload = {
-        requestId: 123,
-        requestStatus: "Available",
-        notificationType: "MediaAvailable",
-      };
-
-      const response = await request(server["app"])
-        .post("/webhook")
-        .send(payload)
-        .set("Authorization", "Bearer invalid-token")
-        .set("X-Forwarded-For", "127.0.0.1")
-        .expect(403);
-
-      expect(response.body).toEqual({ error: "Forbidden" });
-    });
-
-    it("should reject requests without token", async () => {
-      const payload: WebhookPayload = {
-        requestId: 123,
-        requestStatus: "Available",
-        notificationType: "MediaAvailable",
-      };
-
-      const response = await request(server["app"])
-        .post("/webhook")
-        .send(payload)
-        .set("X-Forwarded-For", "127.0.0.1")
-        .expect(403);
-
-      expect(response.body).toEqual({ error: "Forbidden" });
     });
 
     it("should accept IPv4-mapped IPv6 requests when IPv4 is allowlisted", async () => {
@@ -167,7 +115,6 @@ describe("WebhookServer", () => {
       const response = await request(testServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "::ffff:192.168.4.3") // IPv4-mapped IPv6
         .expect(200);
 
@@ -194,7 +141,6 @@ describe("WebhookServer", () => {
       const response = await request(testServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "192.168.4.3") // Regular IPv4
         .expect(200);
 
@@ -234,7 +180,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -260,7 +205,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -283,7 +227,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -307,7 +250,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -327,7 +269,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -345,7 +286,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -363,7 +303,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -387,7 +326,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -409,7 +347,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -427,7 +364,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -445,7 +381,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -463,7 +398,6 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -483,7 +417,6 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -499,7 +432,6 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send("invalid json")
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .set("Content-Type", "application/json")
         .expect(400);
@@ -523,7 +455,6 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(500);
 
@@ -598,7 +529,6 @@ describe("WebhookServer", () => {
       const response = await request(serverWithoutHandler["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -626,7 +556,6 @@ describe("WebhookServer", () => {
       await request(debugServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("access-token", "another-token")
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
@@ -663,7 +592,7 @@ describe("WebhookServer", () => {
 
       const censored = censorHeaders(headers);
 
-      expect(censored.authorization).toBe("Bearer ***CENSORED***");
+      expect(censored.authorization).toBe("***CENSORED***");
       expect(censored["access-token"]).toBe("***CENSORED***");
       expect(censored["content-type"]).toBe("application/json");
 
@@ -688,7 +617,6 @@ describe("WebhookServer", () => {
       await request(normalServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -719,7 +647,6 @@ describe("WebhookServer", () => {
       await request(normalServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -750,7 +677,7 @@ describe("WebhookServer", () => {
       await request(debugServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("Authorization", "Some-Auth-Value") // Add auth header to test censoring
         .set("X-Forwarded-For", "127.0.0.1") // This will be rejected
         .expect(403);
 

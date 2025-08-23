@@ -2,7 +2,7 @@ import express from "express";
 import { Server } from "http";
 
 export interface WebhookPayload {
-  requestId?: number | null;
+  requestId?: number | string | null;
   requestedUser?: string | null;
   title?: string | null;
   requestedDate?: string | null;
@@ -152,16 +152,7 @@ export class WebhookServer {
       }
     });
 
-    if (!isAllowlistedIP) {
-      return false;
-    }
-
-    // If we have an application token configured, validate it
-    const authHeader = req.headers["authorization"];
-    const tokenHeader = req.headers["access-token"];
-
-    const providedToken = authHeader?.replace("Bearer ", "") || tokenHeader;
-    return providedToken == this.ombiToken;
+    return isAllowlistedIP;
   }
 
   private setupRoutes() {
@@ -197,7 +188,7 @@ export class WebhookServer {
     const censoredHeaders = { ...headers };
 
     if (censoredHeaders.authorization) {
-      censoredHeaders.authorization = "Bearer ***CENSORED***";
+      censoredHeaders.authorization = "***CENSORED***";
     }
 
     if (censoredHeaders["access-token"]) {
