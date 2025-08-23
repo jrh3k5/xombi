@@ -13,6 +13,7 @@ export interface WebhookConfig {
   ombiApiUrl?: string;
   ombiApiKey?: string;
   port?: number;
+  debugEnabled?: boolean;
 }
 
 export interface WebhookSystemComponents {
@@ -47,6 +48,8 @@ export class WebhookInitializer {
       allowlistedIPs = configuredAllowlistedIPs.split(",");
     }
 
+    const debugEnabled = process.env.DEBUG_OMBI_WEBHOOK === "true";
+
     return {
       enabled,
       applicationKey,
@@ -55,6 +58,7 @@ export class WebhookInitializer {
       ombiApiUrl,
       ombiApiKey,
       port,
+      debugEnabled,
     };
   }
 
@@ -92,6 +96,8 @@ export class WebhookInitializer {
       requestTracker,
       config.applicationKey!,
       config.allowlistedIPs!,
+      true, // trustProxy
+      config.debugEnabled,
     );
     const webhookManager = new WebhookManager(
       config.ombiApiUrl!,

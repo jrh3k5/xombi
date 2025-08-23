@@ -56,10 +56,12 @@ Optionally, you can add:
 
 ```
 DEBUG_OMBI_SEARCH=true
+DEBUG_OMBI_WEBHOOK=true
 XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true
 ```
 
 - `DEBUG_OMBI_SEARCH=true` will enable debug logging of the responses received from Ombi.
+- `DEBUG_OMBI_WEBHOOK=true` will enable debug logging of webhook requests, including headers (with tokens censored) and request body.
 - `XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true` will automatically revoke ALL other XMTP installations if the limit is reached. **Use with caution** as this will disconnect all other devices/applications using this XMTP identity.
 
 #### Webhook Notifications (Optional)

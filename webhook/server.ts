@@ -31,12 +31,14 @@ export class WebhookServer {
   ) => Promise<void>;
   private ombiToken: string;
   private allowlistedIPs: string[];
+  private debugEnabled: boolean;
 
   constructor(
     requestTracker: RequestTracker,
     ombiToken: string,
     allowlistedIPs: string[],
     trustProxy?: boolean,
+    debugEnabled?: boolean,
   ) {
     this.app = express();
 
@@ -47,6 +49,7 @@ export class WebhookServer {
     this.requestTracker = requestTracker;
     this.ombiToken = ombiToken;
     this.allowlistedIPs = allowlistedIPs;
+    this.debugEnabled = debugEnabled ?? false;
     this.setupMiddleware();
     this.setupRoutes();
   }
@@ -131,7 +134,18 @@ export class WebhookServer {
   private async handleWebhook(req: express.Request, res: express.Response) {
     try {
       const payload = req.body as WebhookPayload;
-      console.log("Received webhook:", JSON.stringify(payload, null, 2));
+
+      if (this.debugEnabled) {
+        console.log("=== WEBHOOK DEBUG ===");
+        console.log(
+          "Headers:",
+          JSON.stringify(this.censorHeaders(req.headers), null, 2),
+        );
+        console.log("Body:", JSON.stringify(payload, null, 2));
+        console.log("=====================");
+      } else {
+        console.log("Received webhook:", JSON.stringify(payload, null, 2));
+      }
 
       if (this.isAvailabilityNotification(payload)) {
         await this.handleAvailabilityNotification(payload);
@@ -142,6 +156,22 @@ export class WebhookServer {
       console.error("Error handling webhook:", error);
       res.status(500).json({ error: "Internal server error" });
     }
+  }
+
+  private censorHeaders(
+    headers: express.Request["headers"],
+  ): Record<string, string | string[] | undefined> {
+    const censoredHeaders = { ...headers };
+
+    if (censoredHeaders.authorization) {
+      censoredHeaders.authorization = "Bearer ***CENSORED***";
+    }
+
+    if (censoredHeaders["x-application-token"]) {
+      censoredHeaders["x-application-token"] = "***CENSORED***";
+    }
+
+    return censoredHeaders;
   }
 
   private isAvailabilityNotification(payload: WebhookPayload): boolean {

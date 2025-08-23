@@ -597,4 +597,127 @@ describe("WebhookServer", () => {
       // Should not crash, just not send notification
     });
   });
+
+  describe("debug logging", () => {
+    it("should log detailed debug information when debug is enabled", async () => {
+      const debugServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        mockAllowlistedIPs,
+        true, // trustProxy
+        true, // debugEnabled
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      await request(debugServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("x-application-token", "another-token")
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(console.log).toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+      expect(console.log).toHaveBeenCalledWith(
+        "Headers:",
+        expect.stringContaining("***CENSORED***"),
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Body:",
+        JSON.stringify(payload, null, 2),
+      );
+      expect(console.log).toHaveBeenCalledWith("=====================");
+
+      await debugServer.stop();
+    });
+
+    it("should censor authorization tokens in debug headers", async () => {
+      const debugServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        mockAllowlistedIPs,
+        true, // trustProxy
+        true, // debugEnabled
+      );
+
+      const censorHeaders = debugServer["censorHeaders"];
+      const headers = {
+        authorization: "Bearer secret-token-123",
+        "x-application-token": "another-secret-456",
+        "content-type": "application/json",
+      };
+
+      const censored = censorHeaders(headers);
+
+      expect(censored.authorization).toBe("Bearer ***CENSORED***");
+      expect(censored["x-application-token"]).toBe("***CENSORED***");
+      expect(censored["content-type"]).toBe("application/json");
+
+      await debugServer.stop();
+    });
+
+    it("should use regular logging when debug is disabled", async () => {
+      const normalServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        mockAllowlistedIPs,
+        true, // trustProxy
+        false, // debugEnabled
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      await request(normalServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(console.log).toHaveBeenCalledWith(
+        "Received webhook:",
+        JSON.stringify(payload, null, 2),
+      );
+      expect(console.log).not.toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+
+      await normalServer.stop();
+    });
+
+    it("should use regular logging when debug is not specified (defaults to false)", async () => {
+      const normalServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        mockAllowlistedIPs,
+        true, // trustProxy
+        // debugEnabled parameter omitted - should default to false
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      await request(normalServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(console.log).toHaveBeenCalledWith(
+        "Received webhook:",
+        JSON.stringify(payload, null, 2),
+      );
+      expect(console.log).not.toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+
+      await normalServer.stop();
+    });
+  });
 });

@@ -70,6 +70,7 @@ describe("WebhookInitializer", () => {
         ombiApiUrl: "http://ombi:3579",
         ombiApiKey: "ombi-key",
         port: 8080,
+        debugEnabled: false,
       });
     });
 
@@ -87,6 +88,7 @@ describe("WebhookInitializer", () => {
         "::ffff:127.0.0.1",
       ]);
       expect(config.port).toBe(3000);
+      expect(config.debugEnabled).toBe(false);
     });
 
     it("should parse custom webhook port", () => {
@@ -109,6 +111,17 @@ describe("WebhookInitializer", () => {
       const config = WebhookInitializer.parseEnvironmentConfig();
 
       expect(config.port).toBe(3000); // Should default to 3000 for invalid port
+    });
+
+    it("should parse debug configuration", () => {
+      process.env.OMBI_XOMBI_WEBHOOK_ENABLED = "true";
+      process.env.OMBI_XOMBI_APPLICATION_KEY = "test-key";
+      process.env.OMBI_API_KEY = "ombi-key";
+      process.env.DEBUG_OMBI_WEBHOOK = "true";
+
+      const config = WebhookInitializer.parseEnvironmentConfig();
+
+      expect(config.debugEnabled).toBe(true);
     });
   });
 
