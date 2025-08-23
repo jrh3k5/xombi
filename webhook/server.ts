@@ -58,6 +58,20 @@ export class WebhookServer {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
+    // Debug middleware to log requests before validation
+    this.app.use("/webhook", (req, res, next) => {
+      if (this.debugEnabled) {
+        console.log("=== WEBHOOK DEBUG ===");
+        console.log(
+          "Headers:",
+          JSON.stringify(this.censorHeaders(req.headers), null, 2),
+        );
+        console.log("Body:", JSON.stringify(req.body, null, 2));
+        console.log("=====================");
+      }
+      next();
+    });
+
     // Middleware to validate requests are from Ombi
     this.app.use("/webhook", (req, res, next) => {
       if (!this.isValidOmbiRequest(req)) {
@@ -134,18 +148,7 @@ export class WebhookServer {
   private async handleWebhook(req: express.Request, res: express.Response) {
     try {
       const payload = req.body as WebhookPayload;
-
-      if (this.debugEnabled) {
-        console.log("=== WEBHOOK DEBUG ===");
-        console.log(
-          "Headers:",
-          JSON.stringify(this.censorHeaders(req.headers), null, 2),
-        );
-        console.log("Body:", JSON.stringify(payload, null, 2));
-        console.log("=====================");
-      } else {
-        console.log("Received webhook:", JSON.stringify(payload, null, 2));
-      }
+      console.log("Received webhook:", JSON.stringify(payload, null, 2));
 
       if (this.isAvailabilityNotification(payload)) {
         await this.handleAvailabilityNotification(payload);

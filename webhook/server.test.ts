@@ -719,5 +719,41 @@ describe("WebhookServer", () => {
 
       await normalServer.stop();
     });
+
+    it("should log debug information even for rejected requests", async () => {
+      const debugServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["192.168.1.100"], // Different allowlisted IP to cause rejection
+        true, // trustProxy
+        true, // debugEnabled
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      await request(debugServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1") // This will be rejected
+        .expect(403);
+
+      // Debug logs should still appear even for rejected requests
+      expect(console.log).toHaveBeenCalledWith("=== WEBHOOK DEBUG ===");
+      expect(console.log).toHaveBeenCalledWith(
+        "Headers:",
+        expect.stringContaining("***CENSORED***"),
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Body:",
+        JSON.stringify(payload, null, 2),
+      );
+      expect(console.log).toHaveBeenCalledWith("=====================");
+
+      await debugServer.stop();
+    });
   });
 });
