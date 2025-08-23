@@ -39,6 +39,7 @@ describe("WebhookInitializer", () => {
     delete process.env.OMBI_XOMBI_APPLICATION_KEY;
     delete process.env.OMBI_XOMBI_WEBHOOK_BASE_URL;
     delete process.env.OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS;
+    delete process.env.OMBI_XOMBI_WEBHOOK_PORT;
     delete process.env.OMBI_API_URL;
     delete process.env.OMBI_API_KEY;
   });
@@ -55,6 +56,7 @@ describe("WebhookInitializer", () => {
       process.env.OMBI_XOMBI_APPLICATION_KEY = "test-key";
       process.env.OMBI_XOMBI_WEBHOOK_BASE_URL = "http://custom-url:3000";
       process.env.OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS = "192.168.1.1,10.0.0.1";
+      process.env.OMBI_XOMBI_WEBHOOK_PORT = "8080";
       process.env.OMBI_API_URL = "http://ombi:3579";
       process.env.OMBI_API_KEY = "ombi-key";
 
@@ -67,6 +69,7 @@ describe("WebhookInitializer", () => {
         allowlistedIPs: ["192.168.1.1", "10.0.0.1"],
         ombiApiUrl: "http://ombi:3579",
         ombiApiKey: "ombi-key",
+        port: 8080,
       });
     });
 
@@ -83,6 +86,29 @@ describe("WebhookInitializer", () => {
         "::1",
         "::ffff:127.0.0.1",
       ]);
+      expect(config.port).toBe(3000);
+    });
+
+    it("should parse custom webhook port", () => {
+      process.env.OMBI_XOMBI_WEBHOOK_ENABLED = "true";
+      process.env.OMBI_XOMBI_APPLICATION_KEY = "test-key";
+      process.env.OMBI_API_KEY = "ombi-key";
+      process.env.OMBI_XOMBI_WEBHOOK_PORT = "8080";
+
+      const config = WebhookInitializer.parseEnvironmentConfig();
+
+      expect(config.port).toBe(8080);
+    });
+
+    it("should handle invalid port number gracefully", () => {
+      process.env.OMBI_XOMBI_WEBHOOK_ENABLED = "true";
+      process.env.OMBI_XOMBI_APPLICATION_KEY = "test-key";
+      process.env.OMBI_API_KEY = "ombi-key";
+      process.env.OMBI_XOMBI_WEBHOOK_PORT = "invalid";
+
+      const config = WebhookInitializer.parseEnvironmentConfig();
+
+      expect(config.port).toBe(3000); // Should default to 3000 for invalid port
     });
   });
 
@@ -216,6 +242,39 @@ describe("WebhookInitializer", () => {
       expect(mockWebhookManager.registerWebhook).toHaveBeenCalledWith(
         "http://custom:3000/webhook",
       );
+    });
+
+    it("should use custom port when provided", async () => {
+      const config: WebhookConfig = {
+        enabled: true,
+        applicationKey: "test-key",
+        ombiApiKey: "ombi-key",
+        ombiApiUrl: "http://ombi:3579",
+        allowlistedIPs: ["127.0.0.1"],
+        port: 8080,
+      };
+
+      const mockWebhookServer = {
+        setNotificationHandler: jest.fn(),
+        start: jest.fn().mockResolvedValue(undefined),
+      };
+      const mockWebhookManager = {
+        registerWebhook: jest.fn().mockResolvedValue(true),
+      };
+
+      jest
+        .requireMock("../webhook/server")
+        .WebhookServer.mockReturnValue(mockWebhookServer);
+      jest
+        .requireMock("../ombi/webhook")
+        .WebhookManager.mockReturnValue(mockWebhookManager);
+
+      await WebhookInitializer.initializeWebhookSystem(
+        config,
+        mockXmtpClient as unknown as Client,
+      );
+
+      expect(mockWebhookServer.start).toHaveBeenCalledWith(8080);
     });
 
     it("should handle webhook registration failure gracefully", async () => {

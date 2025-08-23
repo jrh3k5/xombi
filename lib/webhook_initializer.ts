@@ -12,6 +12,7 @@ export interface WebhookConfig {
   allowlistedIPs?: string[];
   ombiApiUrl?: string;
   ombiApiKey?: string;
+  port?: number;
 }
 
 export interface WebhookSystemComponents {
@@ -35,6 +36,10 @@ export class WebhookInitializer {
     const ombiApiUrl = process.env.OMBI_API_URL || "http://localhost:5000";
     const ombiApiKey = process.env.OMBI_API_KEY;
 
+    const port = process.env.OMBI_XOMBI_WEBHOOK_PORT
+      ? parseInt(process.env.OMBI_XOMBI_WEBHOOK_PORT, 10) || 3000
+      : 3000;
+
     let allowlistedIPs: string[] = ["127.0.0.1", "::1", "::ffff:127.0.0.1"];
     const configuredAllowlistedIPs =
       process.env.OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS;
@@ -49,6 +54,7 @@ export class WebhookInitializer {
       allowlistedIPs,
       ombiApiUrl,
       ombiApiKey,
+      port,
     };
   }
 
@@ -101,7 +107,7 @@ export class WebhookInitializer {
     );
 
     // Start webhook server
-    const webhookPort = 3000;
+    const webhookPort = config.port || 3000;
     await webhookServer.start(webhookPort);
 
     // Register webhook with Ombi

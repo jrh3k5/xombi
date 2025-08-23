@@ -73,6 +73,7 @@ OMBI_XOMBI_WEBHOOK_ENABLED=true
 OMBI_XOMBI_APPLICATION_KEY=<application token for webhook authentication>
 OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS=192.168.1.100,10.0.0.50
 OMBI_XOMBI_WEBHOOK_BASE_URL=http://your-server-ip:3000
+OMBI_XOMBI_WEBHOOK_PORT=3000
 ```
 
 Configuration details:
@@ -81,6 +82,7 @@ Configuration details:
 - `OMBI_XOMBI_APPLICATION_KEY` is used to authenticate webhook requests from Ombi. Generate with `openssl rand -hex 32`
 - `OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS` specifies which IP addresses can send webhook requests. By default, only localhost is allowed
 - `OMBI_XOMBI_WEBHOOK_BASE_URL` overrides the webhook URL registered with Ombi (optional - auto-detects if not set)
+- `OMBI_XOMBI_WEBHOOK_PORT` specifies the port for the webhook server (optional - defaults to 3000)
 
 When enabled, the bot will automatically register a webhook with your Ombi instance. When Ombi notifies that content is ready, you'll receive an XMTP message.
 
