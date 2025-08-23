@@ -487,6 +487,49 @@ describe("WebhookServer", () => {
     );
   });
 
+  describe("test notifications", () => {
+    it("should handle test notifications with success message", async () => {
+      const payload: WebhookPayload = {
+        eventType: "test",
+        subject: "Webhook test",
+        message: "This is a test notification",
+      };
+
+      const response = await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+      expect(console.log).toHaveBeenCalledWith(
+        "🎉 Webhook test notification received successfully!",
+      );
+      expect(mockNotificationHandler).not.toHaveBeenCalled(); // Should not send XMTP notification
+    });
+
+    it("should handle test notifications with case insensitive eventType", async () => {
+      const payload: WebhookPayload = {
+        eventType: "TEST", // uppercase
+        subject: "Webhook test",
+        message: "This is a test notification",
+      };
+
+      const response = await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+      expect(console.log).toHaveBeenCalledWith(
+        "🎉 Webhook test notification received successfully!",
+      );
+    });
+  });
+
   describe("error handling", () => {
     it("should handle invalid JSON payload", async () => {
       await request(server["app"])

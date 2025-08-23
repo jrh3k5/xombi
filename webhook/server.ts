@@ -150,7 +150,9 @@ export class WebhookServer {
       const payload = req.body as WebhookPayload;
       console.log("Received webhook:", JSON.stringify(payload, null, 2));
 
-      if (this.isAvailabilityNotification(payload)) {
+      if (this.isTestNotification(payload)) {
+        this.handleTestNotification();
+      } else if (this.isAvailabilityNotification(payload)) {
         await this.handleAvailabilityNotification(payload);
       }
 
@@ -175,6 +177,15 @@ export class WebhookServer {
     }
 
     return censoredHeaders;
+  }
+
+  private isTestNotification(payload: WebhookPayload): boolean {
+    const eventType = payload.eventType?.toLowerCase() || "";
+    return eventType === "test";
+  }
+
+  private handleTestNotification(): void {
+    console.log("🎉 Webhook test notification received successfully!");
   }
 
   private isAvailabilityNotification(payload: WebhookPayload): boolean {
