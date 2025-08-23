@@ -5,8 +5,16 @@ import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";
 
-// triageCurrentStep is used to, based on the given sender address and the current state of that sender's
-// workflow, return an async no-arg function that can be invoked.
+/**
+ * Triage and handle the current step in a user's workflow based on their message content and state.
+ * Routes to appropriate handlers for search, request, or help functionality.
+ * @param ombiClient The Ombi client for media operations
+ * @param senderAddress The wallet address of the user sending the message
+ * @param message The XMTP message containing the user's input
+ * @param conversation The XMTP conversation for sending responses
+ * @param requestTracker Optional tracker for webhook notifications
+ * @throws Error if message processing fails
+ */
 export async function triageCurrentStep(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,

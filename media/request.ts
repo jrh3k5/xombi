@@ -17,7 +17,16 @@ import {
 } from "../ombi/model";
 import { RequestTracker } from "../webhook/server";
 
-// requestMovie submits a request for a movie based on the selection within the given message.
+/**
+ * Submit a movie request to Ombi based on the user's selection.
+ * Handles error cases and tracks the request for webhook notifications.
+ * @param ombiClient The Ombi client for making requests
+ * @param senderAddress The wallet address of the user making the request
+ * @param message The XMTP message containing the user's selection
+ * @param conversation The XMTP conversation for sending responses
+ * @param requestTracker Optional tracker for webhook notifications
+ * @throws Error if the request fails for reasons other than already requested or no permissions
+ */
 export async function requestMovie(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,
@@ -56,7 +65,16 @@ export async function requestMovie(
   clearUserState(senderAddress);
 }
 
-// requestTV submits a request to enqueue the TV show based on the selection within the given message.
+/**
+ * Submit a TV show request to Ombi based on the user's selection.
+ * Handles error cases and tracks the request for webhook notifications.
+ * @param ombiClient The Ombi client for making requests
+ * @param senderAddress The wallet address of the user making the request
+ * @param message The XMTP message containing the user's selection
+ * @param conversation The XMTP conversation for sending responses
+ * @param requestTracker Optional tracker for webhook notifications
+ * @throws Error if the request fails for reasons other than already requested or no permissions
+ */
 export async function requestTV(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,

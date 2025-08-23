@@ -12,23 +12,59 @@ import {
 config();
 
 // newClient creates a new instance of OmbiClient that can be used to interact with Ombi.
+/**
+ * Create a new HTTP-based Ombi client instance.
+ * @returns A new HttpOmbiClient configured with environment settings
+ */
 export function newClient(): HttpOmbiClient {
   return new HttpOmbiClient();
 }
 
+/**
+ * Interface for interacting with an Ombi media server.
+ * Provides methods for searching media and submitting requests.
+ */
 export interface OmbiClient {
+  /**
+   * Submit a request to add a movie to Ombi.
+   * @param address The wallet address of the user making the request
+   * @param movieSearchResult The movie search result to request
+   * @throws MovieAlreadyRequestedError if the movie has already been requested
+   * @throws NoRequestPermissions if the user lacks permission to make requests
+   */
   requestMovie(
     address: `0x${string}`,
     movieSearchResult: MovieSearchResult,
   ): Promise<void>;
+  /**
+   * Submit a request to add a TV show to Ombi.
+   * @param address The wallet address of the user making the request
+   * @param tvSearchResult The TV show search result to request
+   * @throws ShowAlreadyRequestedError if the show has already been requested
+   * @throws NoRequestPermissions if the user lacks permission to make requests
+   */
   requestTV(
     address: `0x${string}`,
     tvSearchResult: TVSearchResult,
   ): Promise<void>;
+  /**
+   * Search for movies using the provided search term.
+   * @param address The wallet address of the user performing the search
+   * @param searchTerm The search query string
+   * @returns Array of movie search results
+   * @throws Error if search fails or returns invalid data
+   */
   searchMovies(
     address: `0x${string}`,
     searchTerm: string,
   ): Promise<MovieSearchResult[]>;
+  /**
+   * Search for TV shows using the provided search term.
+   * @param address The wallet address of the user performing the search
+   * @param searchTerm The search query string
+   * @returns Array of TV show search results
+   * @throws Error if search fails or returns invalid data
+   */
   searchTV(
     address: `0x${string}`,
     searchTerm: string,
@@ -36,7 +72,12 @@ export interface OmbiClient {
 }
 
 // OmbiClient is a client used to interact with Ombi
-export class HttpOmbiClient implements OmbiClient {
+export /**
+ * HTTP-based implementation of the OmbiClient interface.
+ * Communicates with Ombi via REST API calls and handles authentication
+ * through username resolution from wallet addresses.
+ */
+class HttpOmbiClient implements OmbiClient {
   private apiUrl: string;
   private apiKey: string;
 

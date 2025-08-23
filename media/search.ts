@@ -8,6 +8,15 @@ import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 // searchMovies executes a movie search for the given message
+/**
+ * Search for movies using Ombi and display results to the user.
+ * Updates user state with search results for subsequent selection.
+ * @param ombiClient The Ombi client for performing searches
+ * @param senderAddress The wallet address of the user performing the search
+ * @param searchTerm The movie title or keywords to search for
+ * @param conversation The XMTP conversation for sending results
+ * @throws Error if the search fails or returns invalid results
+ */
 export async function searchMovies(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,
@@ -31,6 +40,15 @@ export async function searchMovies(
 }
 
 // searchTV executs a TV show search for the given message
+/**
+ * Search for TV shows using Ombi and display results to the user.
+ * Updates user state with search results for subsequent selection.
+ * @param ombiClient The Ombi client for performing searches
+ * @param senderAddress The wallet address of the user performing the search
+ * @param searchTerm The TV show title or keywords to search for
+ * @param conversation The XMTP conversation for sending results
+ * @throws Error if the search fails or returns invalid results
+ */
 export async function searchTV(
   ombiClient: OmbiClient,
   senderAddress: `0x${string}`,

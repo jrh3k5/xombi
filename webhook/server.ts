@@ -1,6 +1,10 @@
 import express from "express";
 import { Server } from "http";
 
+/**
+ * Represents the payload structure received from Ombi webhook notifications.
+ * Contains information about media requests and their status changes.
+ */
 export interface WebhookPayload {
   requestId?: number | string | null;
   requestedUser?: string | null;
@@ -40,24 +44,59 @@ export interface WebhookPayload {
   notificationType?: string | null;
 }
 
+/**
+ * Interface for tracking media requests and associating them with requester addresses.
+ * Supports tracking by both internal request IDs and provider IDs with media types.
+ */
 export interface RequestTracker {
+  /**
+   * Track a media request by its provider ID, associating it with a requester address.
+   * @param requestId The provider ID (e.g., TheMovieDB ID) of the requested media
+   * @param mediaType The type of media being requested (movie or tv)
+   * @param requesterAddress The wallet address of the user making the request
+   */
   trackRequest(
     requestId: string,
     mediaType: "movie" | "tv",
     requesterAddress: string,
   ): void;
+  /**
+   * Get the requester address for a given request ID (backward compatibility).
+   * @param requestId The request ID to look up
+   * @returns The wallet address of the requester, or undefined if not found
+   */
   getRequester(requestId: string): string | undefined;
+  /**
+   * Get the requester address for a given provider ID and media type.
+   * @param providerId The provider ID (e.g., TheMovieDB ID) to look up
+   * @param mediaType The media type to match
+   * @returns The wallet address of the requester, or undefined if not found
+   */
   getRequesterByProviderId(
     providerId: string,
     mediaType: "movie" | "tv",
   ): string | undefined;
+  /**
+   * Remove a tracked request by its request ID (backward compatibility).
+   * @param requestId The request ID to remove
+   */
   removeRequest(requestId: string): void;
+  /**
+   * Remove a tracked request by its provider ID and media type.
+   * @param providerId The provider ID to remove
+   * @param mediaType The media type to match for removal
+   */
   removeRequestByProviderId(
     providerId: string,
     mediaType: "movie" | "tv",
   ): void;
 }
 
+/**
+ * HTTP server that receives webhook notifications from Ombi and forwards them
+ * to users via XMTP. Handles authentication via IP allowlisting and processes
+ * media availability and denial notifications.
+ */
 export class WebhookServer {
   private app: express.Application;
   private server: Server | undefined;
@@ -70,6 +109,14 @@ export class WebhookServer {
   private allowlistedIPs: string[];
   private debugEnabled: boolean;
 
+  /**
+   * Create a new webhook server instance.
+   * @param requestTracker Service for tracking media requests and their requesters
+   * @param ombiToken Authentication token for webhook requests (currently unused)
+   * @param allowlistedIPs List of IP addresses allowed to send webhook requests
+   * @param trustProxy Whether to trust proxy headers for client IP detection
+   * @param debugEnabled Whether to enable debug logging of webhook requests
+   */
   constructor(
     requestTracker: RequestTracker,
     ombiToken: string,
@@ -286,12 +333,21 @@ export class WebhookServer {
     }
   }
 
+  /**
+   * Set the handler function for sending notifications to users.
+   * @param handler Function that takes a wallet address and message, sends notification
+   */
   public setNotificationHandler(
     handler: (address: string, message: string) => Promise<void>,
   ) {
     this.notificationHandler = handler;
   }
 
+  /**
+   * Start the webhook server on the specified port.
+   * @param port The port number to listen on (defaults to 3000)
+   * @returns Promise that resolves when the server is listening
+   */
   public async start(port: number = 3000): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
@@ -305,6 +361,10 @@ export class WebhookServer {
     });
   }
 
+  /**
+   * Stop the webhook server gracefully.
+   * @returns Promise that resolves when the server has stopped
+   */
   public async stop(): Promise<void> {
     return new Promise((resolve) => {
       if (this.server) {

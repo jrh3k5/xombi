@@ -5,6 +5,10 @@ import { XMTPNotifier } from "../webhook/notify";
 import { WebhookManager } from "../ombi/webhook";
 import { buildWebhookURL } from "./network";
 
+/**
+ * Configuration interface for webhook system setup.
+ * Contains all settings needed to initialize webhook notifications.
+ */
 export interface WebhookConfig {
   enabled: boolean;
   applicationKey?: string;
@@ -16,6 +20,10 @@ export interface WebhookConfig {
   debugEnabled?: boolean;
 }
 
+/**
+ * Container for all webhook system components after initialization.
+ * Used to manage the lifecycle of the webhook notification system.
+ */
 export interface WebhookSystemComponents {
   requestTracker: MemoryRequestTracker;
   webhookServer: WebhookServer;
@@ -23,7 +31,15 @@ export interface WebhookSystemComponents {
   xmtpNotifier: XMTPNotifier;
 }
 
+/**
+ * Utility class for initializing and configuring the webhook notification system.
+ * Handles environment variable parsing, component creation, and system startup.
+ */
 export class WebhookInitializer {
+  /**
+   * Parse webhook configuration from environment variables.
+   * @returns Parsed webhook configuration object
+   */
   static parseEnvironmentConfig(): WebhookConfig {
     const enabled =
       process.env.OMBI_XOMBI_WEBHOOK_ENABLED?.toLowerCase() === "true";
@@ -62,6 +78,11 @@ export class WebhookInitializer {
     };
   }
 
+  /**
+   * Validate webhook configuration and throw errors for missing required fields.
+   * @param config The webhook configuration to validate
+   * @throws Error if required configuration is missing when webhooks are enabled
+   */
   static validateConfig(config: WebhookConfig): void {
     if (!config.enabled) {
       return; // No validation needed for disabled webhooks
@@ -78,6 +99,14 @@ export class WebhookInitializer {
     }
   }
 
+  /**
+   * Initialize the complete webhook system with all components.
+   * Creates and starts the webhook server, registers with Ombi, and sets up notifications.
+   * @param config Validated webhook configuration
+   * @param xmtpClient XMTP client for sending notifications
+   * @returns Initialized webhook system components, or null if disabled
+   * @throws Error if system initialization fails
+   */
   static async initializeWebhookSystem(
     config: WebhookConfig,
     xmtpClient: Client,

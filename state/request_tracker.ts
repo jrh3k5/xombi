@@ -1,5 +1,8 @@
 import { RequestTracker } from "../webhook/server";
 
+/**
+ * Internal structure representing a tracked media request.
+ */
 interface TrackedRequest {
   requestId: string;
   mediaType: "movie" | "tv";
@@ -7,9 +10,21 @@ interface TrackedRequest {
   timestamp: Date;
 }
 
+/**
+ * In-memory implementation of RequestTracker that stores tracked requests
+ * in a Map with composite keys to support multiple media types per provider ID.
+ * Includes automatic cleanup functionality for old requests.
+ */
 export class MemoryRequestTracker implements RequestTracker {
   private requests: Map<string, TrackedRequest> = new Map();
 
+  /**
+   * Track a media request by its provider ID, associating it with a requester address.
+   * Uses composite keys to support the same provider ID for different media types.
+   * @param requestId The provider ID (e.g., TheMovieDB ID) of the requested media
+   * @param mediaType The type of media being requested (movie or tv)
+   * @param requesterAddress The wallet address of the user making the request
+   */
   trackRequest(
     requestId: string,
     mediaType: "movie" | "tv",
@@ -30,6 +45,12 @@ export class MemoryRequestTracker implements RequestTracker {
     );
   }
 
+  /**
+   * Get the requester address for a given request ID (backward compatibility).
+   * Searches through all tracked requests to find the first match by request ID.
+   * @param requestId The request ID to look up
+   * @returns The wallet address of the requester, or undefined if not found
+   */
   getRequester(requestId: string): string | undefined {
     // For backward compatibility, try to find a match with any media type
     for (const [, request] of this.requests.entries()) {
@@ -40,6 +61,13 @@ export class MemoryRequestTracker implements RequestTracker {
     return undefined;
   }
 
+  /**
+   * Get the requester address for a given provider ID and media type.
+   * Uses composite key lookup for efficient retrieval.
+   * @param providerId The provider ID (e.g., TheMovieDB ID) to look up
+   * @param mediaType The media type to match
+   * @returns The wallet address of the requester, or undefined if not found
+   */
   getRequesterByProviderId(
     providerId: string,
     mediaType: "movie" | "tv",
@@ -49,6 +77,11 @@ export class MemoryRequestTracker implements RequestTracker {
     return request?.requesterAddress;
   }
 
+  /**
+   * Remove a tracked request by its request ID (backward compatibility).
+   * Searches through all requests and removes the first match found.
+   * @param requestId The request ID to remove
+   */
   removeRequest(requestId: string): void {
     let removed = false;
     // Remove all requests with this requestId (any media type)
@@ -64,6 +97,12 @@ export class MemoryRequestTracker implements RequestTracker {
     }
   }
 
+  /**
+   * Remove a tracked request by its provider ID and media type.
+   * Uses composite key for efficient removal.
+   * @param providerId The provider ID to remove
+   * @param mediaType The media type to match for removal
+   */
   removeRequestByProviderId(
     providerId: string,
     mediaType: "movie" | "tv",
@@ -78,14 +117,27 @@ export class MemoryRequestTracker implements RequestTracker {
     }
   }
 
+  /**
+   * Get the total number of currently tracked requests.
+   * @returns The number of tracked requests
+   */
   getTrackedRequestCount(): number {
     return this.requests.size;
   }
 
+  /**
+   * Get all currently tracked requests.
+   * @returns Array of all tracked request objects
+   */
   getAllTrackedRequests(): TrackedRequest[] {
     return Array.from(this.requests.values());
   }
 
+  /**
+   * Remove requests older than the specified number of days.
+   * Useful for preventing memory leaks from abandoned requests.
+   * @param olderThanDays Number of days after which requests should be removed (default: 30)
+   */
   cleanup(olderThanDays: number = 30): void {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);

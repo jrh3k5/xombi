@@ -1,14 +1,31 @@
 import { Client, Dm } from "@xmtp/node-sdk";
 import { getEthereumAddressesOfMember } from "../lib/conversation_member";
 
+/**
+ * Service for sending XMTP notifications to users about their media requests.
+ * Handles conversation management and message delivery via the XMTP protocol.
+ * Caches conversations for improved performance.
+ */
 export class XMTPNotifier {
   private xmtpClient: Client;
   private conversationCache: Map<string, Dm> = new Map();
 
+  /**
+   * Create a new XMTP notifier instance.
+   * @param xmtpClient The XMTP client instance for sending messages
+   */
   constructor(xmtpClient: Client) {
     this.xmtpClient = xmtpClient;
   }
 
+  /**
+   * Send a notification message to a user's wallet address via XMTP.
+   * Looks for existing conversations and uses caching for performance.
+   * Only sends to existing conversations to avoid spam.
+   * @param address The wallet address of the recipient
+   * @param message The notification message to send
+   * @throws Error if message cannot be sent to an existing conversation
+   */
   async sendNotification(address: string, message: string): Promise<void> {
     try {
       // Try to get existing conversation from cache
@@ -50,10 +67,18 @@ export class XMTPNotifier {
     }
   }
 
+  /**
+   * Clear the conversation cache.
+   * Useful for testing or when conversation state may have changed.
+   */
   clearConversationCache(): void {
     this.conversationCache.clear();
   }
 
+  /**
+   * Get the number of cached conversations.
+   * @returns The number of conversations currently cached
+   */
   getCachedConversationCount(): number {
     return this.conversationCache.size;
   }
