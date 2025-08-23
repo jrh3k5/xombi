@@ -76,7 +76,34 @@ export class WebhookServer {
         return;
       }
 
-      isAllowlistedIP = clientIP == allowlistedIP;
+      // Direct match
+      if (clientIP == allowlistedIP) {
+        isAllowlistedIP = true;
+        return;
+      }
+
+      // Handle IPv4-mapped IPv6 addresses
+      // If clientIP is IPv4-mapped (::ffff:x.x.x.x) and allowlisted is IPv4, compare the IPv4 parts
+      if (clientIP?.startsWith("::ffff:") && !allowlistedIP.includes(":")) {
+        const ipv4Part = clientIP.substring(7); // Remove "::ffff:" prefix
+        if (ipv4Part === allowlistedIP) {
+          isAllowlistedIP = true;
+          return;
+        }
+      }
+
+      // Handle reverse case: if allowlisted is IPv4-mapped and clientIP is IPv4
+      if (
+        allowlistedIP.startsWith("::ffff:") &&
+        clientIP &&
+        !clientIP.includes(":")
+      ) {
+        const ipv4Part = allowlistedIP.substring(7); // Remove "::ffff:" prefix
+        if (clientIP === ipv4Part) {
+          isAllowlistedIP = true;
+          return;
+        }
+      }
     });
 
     if (!isAllowlistedIP) {

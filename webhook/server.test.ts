@@ -143,6 +143,58 @@ describe("WebhookServer", () => {
 
       expect(response.body).toEqual({ error: "Forbidden" });
     });
+
+    it("should accept IPv4-mapped IPv6 requests when IPv4 is allowlisted", async () => {
+      // Create a server with a specific IPv4 address in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["192.168.4.3"], // Only IPv4 address in allowlist
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "::ffff:192.168.4.3") // IPv4-mapped IPv6
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should accept IPv4 requests when IPv4-mapped IPv6 is allowlisted", async () => {
+      // Create a server with IPv4-mapped IPv6 address in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["::ffff:192.168.4.3"], // IPv4-mapped IPv6 in allowlist
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        eventType: "MediaAvailable",
+        requestId: 123,
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Authorization", `Bearer ${mockOmbiToken}`)
+        .set("X-Forwarded-For", "192.168.4.3") // Regular IPv4
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
   });
 
   describe("health endpoint", () => {
