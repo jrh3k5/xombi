@@ -129,7 +129,7 @@ export class WebhookServer {
 
     // If we have an application token configured, validate it
     const authHeader = req.headers["authorization"];
-    const tokenHeader = req.headers["x-application-token"];
+    const tokenHeader = req.headers["access-token"];
 
     const providedToken = authHeader?.replace("Bearer ", "") || tokenHeader;
     return providedToken == this.ombiToken;
@@ -170,8 +170,8 @@ export class WebhookServer {
       censoredHeaders.authorization = "Bearer ***CENSORED***";
     }
 
-    if (censoredHeaders["x-application-token"]) {
-      censoredHeaders["x-application-token"] = "***CENSORED***";
+    if (censoredHeaders["access-token"]) {
+      censoredHeaders["access-token"] = "***CENSORED***";
     }
 
     return censoredHeaders;

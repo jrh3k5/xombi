@@ -77,7 +77,7 @@ describe("WebhookServer", () => {
       expect(response.body).toEqual({ received: true });
     });
 
-    it("should accept requests with x-application-token header", async () => {
+    it("should accept requests with access-token header", async () => {
       const payload: WebhookPayload = {
         eventType: "MediaAvailable",
         requestId: 123,
@@ -86,7 +86,7 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
-        .set("x-application-token", mockOmbiToken)
+        .set("access-token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -617,7 +617,7 @@ describe("WebhookServer", () => {
         .post("/webhook")
         .send(payload)
         .set("Authorization", `Bearer ${mockOmbiToken}`)
-        .set("x-application-token", "another-token")
+        .set("access-token", "another-token")
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -647,14 +647,14 @@ describe("WebhookServer", () => {
       const censorHeaders = debugServer["censorHeaders"];
       const headers = {
         authorization: "Bearer secret-token-123",
-        "x-application-token": "another-secret-456",
+        "access-token": "another-secret-456",
         "content-type": "application/json",
       };
 
       const censored = censorHeaders(headers);
 
       expect(censored.authorization).toBe("Bearer ***CENSORED***");
-      expect(censored["x-application-token"]).toBe("***CENSORED***");
+      expect(censored["access-token"]).toBe("***CENSORED***");
       expect(censored["content-type"]).toBe("application/json");
 
       await debugServer.stop();
