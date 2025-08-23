@@ -209,6 +209,7 @@ describe("WebhookServer", () => {
       // Set up mock request in tracker - using provider ID
       mockRequestTracker.setRequester("550", "0x1234567890abcdef", "movie");
       mockRequestTracker.setRequester("551", "0x1234567890abcdef", "tv");
+      mockRequestTracker.setRequester("241554", "0x1234567890abcdef", "tv"); // For PartiallyAvailable tests
     });
 
     it("should process availability notification with movie", async () => {
@@ -284,6 +285,108 @@ describe("WebhookServer", () => {
         "Sent notification to 0x1234567890abcdef for Denied Movie (denied)",
       );
       expect(mockRequestTracker.hasRequest("550")).toBe(false); // Should be removed after notification
+    });
+
+    it("should process partially available notification with complete episode info", async () => {
+      const payload: WebhookPayload = {
+        requestId: 241554,
+        providerId: "241554",
+        type: "TV Show",
+        title: "Test Series",
+        requestStatus: "Processing Request",
+        notificationType: "PartiallyAvailable",
+        partiallyAvailableEpisodeNumbers: "7, 8, 9, 10",
+        partiallyAvailableSeasonNumber: 1,
+        partiallyAvailableEpisodeCount: 4,
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '📺 Some episodes of "Test Series" are now available! Season 1, Episodes: 7, 8, 9, 10 (4 episodes)',
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Sent notification to 0x1234567890abcdef for Test Series (partially available)",
+      );
+      expect(mockRequestTracker.hasRequest("241554")).toBe(true); // Should NOT be removed for partial availability
+    });
+
+    it("should process partially available notification with single episode", async () => {
+      const payload: WebhookPayload = {
+        requestId: 241554,
+        providerId: "241554",
+        type: "TV Show",
+        title: "Another Series",
+        requestStatus: "Processing Request",
+        notificationType: "PartiallyAvailable",
+        partiallyAvailableEpisodeNumbers: "1",
+        partiallyAvailableSeasonNumber: 1,
+        partiallyAvailableEpisodeCount: 1,
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '📺 Some episodes of "Another Series" are now available! Season 1, Episodes: 1 (1 episode)',
+      );
+      expect(mockRequestTracker.hasRequest("241554")).toBe(true); // Should NOT be removed for partial availability
+    });
+
+    it("should process partially available notification with episode count only", async () => {
+      const payload: WebhookPayload = {
+        requestId: 241554,
+        providerId: "241554",
+        type: "TV Show",
+        title: "Partial Series",
+        requestStatus: "Processing Request",
+        notificationType: "PartiallyAvailable",
+        partiallyAvailableEpisodeCount: 3,
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '📺 Some episodes of "Partial Series" are now available! (3 episodes)',
+      );
+      expect(mockRequestTracker.hasRequest("241554")).toBe(true); // Should NOT be removed for partial availability
+    });
+
+    it("should process partially available notification without episode details", async () => {
+      const payload: WebhookPayload = {
+        requestId: 241554,
+        providerId: "241554",
+        type: "TV Show",
+        title: "Generic Series",
+        requestStatus: "Processing Request",
+        notificationType: "PartiallyAvailable",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '📺 Some episodes of "Generic Series" are now available!',
+      );
+      expect(mockRequestTracker.hasRequest("241554")).toBe(true); // Should NOT be removed for partial availability
     });
 
     it("should use Unknown as fallback when no title provided", async () => {

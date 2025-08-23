@@ -264,7 +264,12 @@ export class WebhookServer {
 
   private isNotificationForUser(payload: WebhookPayload): boolean {
     const requestStatus = payload.requestStatus?.toLowerCase() || "";
-    return requestStatus === "available" || requestStatus === "denied";
+    const notificationType = payload.notificationType?.toLowerCase() || "";
+    return (
+      requestStatus === "available" ||
+      requestStatus === "denied" ||
+      notificationType === "partiallyavailable"
+    );
   }
 
   private getMediaTypeFromPayload(
@@ -273,7 +278,7 @@ export class WebhookServer {
     const type = payload.type?.toLowerCase();
     if (type === "movie") {
       return "movie";
-    } else if (type === "tv" || type === "tvshow") {
+    } else if (type === "tv" || type === "tvshow" || type === "tv show") {
       return "tv";
     }
     return null;
@@ -308,6 +313,7 @@ export class WebhookServer {
 
     const mediaTitle = payload.title || "Unknown";
     const requestStatus = payload.requestStatus?.toLowerCase() || "";
+    const notificationType = payload.notificationType?.toLowerCase() || "";
 
     let notificationMessage: string;
     if (requestStatus === "available") {
@@ -315,15 +321,38 @@ export class WebhookServer {
     } else if (requestStatus === "denied") {
       const reason = payload.denyReason ? ` Reason: ${payload.denyReason}` : "";
       notificationMessage = `❌ Your request for "${mediaTitle}" has been denied.${reason}`;
+    } else if (notificationType === "partiallyavailable") {
+      const episodeNumbers = payload.partiallyAvailableEpisodeNumbers || "";
+      const seasonNumber = payload.partiallyAvailableSeasonNumber;
+      const episodeCount = payload.partiallyAvailableEpisodeCount || 0;
+
+      if (episodeNumbers && seasonNumber !== undefined && episodeCount > 0) {
+        const episodeWord = episodeCount === 1 ? "episode" : "episodes";
+        notificationMessage = `📺 Some episodes of "${mediaTitle}" are now available! Season ${seasonNumber}, Episodes: ${episodeNumbers} (${episodeCount} ${episodeWord})`;
+      } else if (episodeCount > 0) {
+        const episodeWord = episodeCount === 1 ? "episode" : "episodes";
+        notificationMessage = `📺 Some episodes of "${mediaTitle}" are now available! (${episodeCount} ${episodeWord})`;
+      } else {
+        notificationMessage = `📺 Some episodes of "${mediaTitle}" are now available!`;
+      }
     } else {
       return; // Shouldn't happen as we check in isNotificationForUser
     }
 
     try {
       await this.notificationHandler(requesterAddress, notificationMessage);
-      this.requestTracker.removeRequestByProviderId(providerId, mediaType);
+
+      // Only remove tracking for final states (available/denied), not for partial availability
+      if (notificationType !== "partiallyavailable") {
+        this.requestTracker.removeRequestByProviderId(providerId, mediaType);
+      }
+
+      const statusOrType =
+        notificationType === "partiallyavailable"
+          ? "partially available"
+          : requestStatus;
       console.log(
-        `Sent notification to ${requesterAddress} for ${mediaTitle} (${requestStatus})`,
+        `Sent notification to ${requesterAddress} for ${mediaTitle} (${statusOrType})`,
       );
     } catch (error) {
       console.error(
