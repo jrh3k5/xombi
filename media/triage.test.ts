@@ -2,6 +2,10 @@ import { triageCurrentStep } from "./triage";
 import { UserSearchState } from "../state/user_state";
 import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
+import { UnresolvableAddressError } from "../ombi/errors";
+import * as searchModule from "./search";
+
+jest.mock("./search");
 
 describe("triageCurrentStep", () => {
   let ombiClient: OmbiClient;
@@ -20,6 +24,10 @@ describe("triageCurrentStep", () => {
     message = { content: "" };
     conversation = { send: jest.fn() };
     jest.resetModules();
+
+    // Reset search module mocks
+    (searchModule.searchMovies as jest.Mock).mockResolvedValue([]);
+    (searchModule.searchTV as jest.Mock).mockResolvedValue([]);
   });
 
   it("sends help message if content is 'help'", async () => {
@@ -43,7 +51,7 @@ describe("triageCurrentStep", () => {
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    expect(ombiClient.searchMovies).toHaveBeenCalled();
+    expect(searchModule.searchMovies).toHaveBeenCalled();
   });
 
   it("calls searchTV if content starts with 'tv '", async () => {
@@ -54,7 +62,7 @@ describe("triageCurrentStep", () => {
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    expect(ombiClient.searchTV).toHaveBeenCalled();
+    expect(searchModule.searchTV).toHaveBeenCalled();
   });
 
   it("calls requestMovie if user state is MOVIE and content is not a recognized command", async () => {
@@ -126,5 +134,71 @@ describe("triageCurrentStep", () => {
       conversation as unknown as Dm,
     );
     expect(conversation.send).not.toHaveBeenCalled();
+  });
+
+  it("sends user configuration error message when movie search throws UnresolvableAddressError", async () => {
+    message.content = "movie Batman";
+    (searchModule.searchMovies as jest.Mock).mockRejectedValue(
+      new UnresolvableAddressError("0x123" as `0x${string}`),
+    );
+
+    await triageCurrentStep(
+      ombiClient,
+      senderAddress,
+      message as unknown as DecodedMessage<string>,
+      conversation as unknown as Dm,
+    );
+
+    expect(conversation.send).toHaveBeenCalledWith(
+      "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.",
+    );
+  });
+
+  it("sends user configuration error message when TV search throws UnresolvableAddressError", async () => {
+    message.content = "tv Friends";
+    (searchModule.searchTV as jest.Mock).mockRejectedValue(
+      new UnresolvableAddressError("0x123" as `0x${string}`),
+    );
+
+    await triageCurrentStep(
+      ombiClient,
+      senderAddress,
+      message as unknown as DecodedMessage<string>,
+      conversation as unknown as Dm,
+    );
+
+    expect(conversation.send).toHaveBeenCalledWith(
+      "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.",
+    );
+  });
+
+  it("rethrows non-UnresolvableAddressError errors from movie search", async () => {
+    message.content = "movie Batman";
+    const genericError = new Error("Generic error");
+    (searchModule.searchMovies as jest.Mock).mockRejectedValue(genericError);
+
+    await expect(
+      triageCurrentStep(
+        ombiClient,
+        senderAddress,
+        message as unknown as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      ),
+    ).rejects.toThrow(genericError);
+  });
+
+  it("rethrows non-UnresolvableAddressError errors from TV search", async () => {
+    message.content = "tv Friends";
+    const genericError = new Error("Generic error");
+    (searchModule.searchTV as jest.Mock).mockRejectedValue(genericError);
+
+    await expect(
+      triageCurrentStep(
+        ombiClient,
+        senderAddress,
+        message as unknown as DecodedMessage<string>,
+        conversation as unknown as Dm,
+      ),
+    ).rejects.toThrow(genericError);
   });
 });
