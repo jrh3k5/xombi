@@ -108,7 +108,15 @@ This requires manual setup of the Ombi instance first, so run this command first
 docker compose up ombi -d
 ```
 
-Once it's running, navigate to http://localhost:9753 to set up Ombi. Once it's set up, obtain the Ombi API key from [here](http://localhost:9753/Settings/Ombi). Take note, also, of the user [here](http://localhost:9753/usermanagement) you want the bot to send your requests as to Ombi.
+Once it's running, navigate to http://localhost:9753 to set up Ombi. As part of the initial setup, choose MySQL as the database and provide the following values:
+
+- **Host**: `mysql`
+- **Port**: `3306`
+- **Database Name**: `ombi`
+- **User**: `ombi`
+- **Password**: `ombi_password`
+
+Once it's set up, obtain the Ombi API key from [here](http://localhost:9753/Settings/Ombi). Take note, also, of the user [here](http://localhost:9753/usermanagement) you want the bot to send your requests as to Ombi.
 
 Once you have the API key, create a `.env` file like so:
 

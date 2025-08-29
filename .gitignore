@@ -131,6 +131,7 @@ dist
 
 # Ignore configuration artifacts started up by Docker
 .docker/ombi/config
+.docker/mysql
 
 # Ignore local database artifacts
 xmtp-*.db3*

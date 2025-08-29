@@ -23,6 +23,8 @@ services:
       - xombi-network
   ombi:
     image: ghcr.io/linuxserver/ombi:v4.47.1-ls215
+    depends_on:
+      - mysql
     container_name: ombi
     restart: unless-stopped
     environment:
@@ -33,6 +35,21 @@ services:
       - ./.docker/ombi/config:/config
     ports:
       - "9753:3579"
+    networks:
+      - xombi-network
+  mysql:
+    image: mysql:8.0
+    container_name: ombi-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=ombi_root_password
+      - MYSQL_DATABASE=ombi
+      - MYSQL_USER=ombi
+      - MYSQL_PASSWORD=ombi_password
+    volumes:
+      - ./.docker/mysql/data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     networks:
       - xombi-network
 
