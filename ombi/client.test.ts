@@ -212,6 +212,26 @@ describe("HttpOmbiClient", () => {
       expect(results[0].getSeasonCount()).toBe(2);
       expect(results[0].getStatus()).toBe("continuing");
     });
+    it("handles show that has not yet aired", async () => {
+      mockedAxios.mockResolvedValueOnce({
+        data: [{ id: 171802, title: "Future Detective Series" }],
+      });
+      mockedAxios.mockResolvedValueOnce({
+        data: {
+          seasonRequests: [1],
+          status: "In Development",
+        },
+      });
+      const results = await client.searchTV(address, "test");
+      expect(results).toHaveLength(1);
+      expect(results[0]).toBeInstanceOf(TVSearchResult);
+      expect(results[0].getName()).toBe("Future Detective Series");
+      expect(results[0].getSeasonCount()).toBe(1);
+      expect(results[0].getStatus()).toBe("in development");
+      expect(results[0].getListText()).toBe(
+        "Future Detective Series (1 season, in development)",
+      );
+    });
     it("throws if response is not array", async () => {
       mockedAxios.mockResolvedValueOnce({ data: {} });
       await expect(client.searchTV(address, "test")).rejects.toThrow(

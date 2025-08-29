@@ -60,7 +60,7 @@ export class MovieSearchResult implements ListableResult {
 export class TVSearchResult implements ListableResult {
   private id: string;
   private name: string;
-  private startDate: Date;
+  private startDate: Date | undefined;
   private seasonCount: number;
   private status: string;
 
@@ -68,14 +68,14 @@ export class TVSearchResult implements ListableResult {
    * Create a new TV show search result.
    * @param id The TheMovieDB ID of the TV show
    * @param name The title of the TV show
-   * @param startDate The first air date of the show
+   * @param startDate The first air date of the show. This can be undefined if the show has not yet aired.
    * @param seasonCount The number of seasons
    * @param status The current status (e.g., 'ended', 'continuing')
    */
   constructor(
     id: string,
     name: string,
-    startDate: Date,
+    startDate: Date | undefined,
     seasonCount: number,
     status: string,
   ) {
@@ -120,6 +120,13 @@ export class TVSearchResult implements ListableResult {
 
   getListText(): string {
     const seasonText = this.seasonCount == 1 ? "season" : "seasons";
-    return `${this.name} (${this.startDate.getUTCFullYear()}) (${this.seasonCount} ${seasonText}, ${this.status})`;
+    let qualifiedName = this.name;
+    if (this.startDate) {
+      qualifiedName += ` (${this.startDate.getUTCFullYear()})`;
+    }
+
+    return (
+      qualifiedName + ` (${this.seasonCount} ${seasonText}, ${this.status})`
+    );
   }
 }
