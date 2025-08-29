@@ -261,7 +261,10 @@ export class HttpOmbiClient implements OmbiClient {
           `${this.apiUrl}/api/v2/search/tv/moviedb/${showID}`,
         );
         const details = showDetailsResponse.data as Record<string, unknown>;
-        const startDate = new Date(String(details.firstAired ?? ""));
+        let startDate: Date | undefined = undefined;
+        if (details.firstAired) {
+          startDate = new Date(String(details.firstAired));
+        }
         const seasonCount = Array.isArray(details.seasonRequests)
           ? details.seasonRequests.length
           : 0;
