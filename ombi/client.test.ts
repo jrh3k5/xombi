@@ -147,6 +147,17 @@ describe("HttpOmbiClient", () => {
         ),
       ).toThrow(ShowAlreadyRequestedError);
     });
+    it("throws MovieAlreadyRequestedError on 'already monitored' errorMessage", () => {
+      expect(() =>
+        client.handleOmbiError(
+          "/api",
+          mockAxiosResponse({
+            isError: true,
+            errorMessage: "Movie is already monitored",
+          }),
+        ),
+      ).toThrow(MovieAlreadyRequestedError);
+    });
     it("returns NoRequestPermissions on permissions errorMessage", () => {
       expect(
         client.handleOmbiError(

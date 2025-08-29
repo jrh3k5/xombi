@@ -167,6 +167,10 @@ export class HttpOmbiClient implements OmbiClient {
           throw new ShowAlreadyRequestedError("Show already requested");
         }
 
+        if (errorMessage.indexOf("already monitored") >= 0) {
+          throw new MovieAlreadyRequestedError("Movie already requested");
+        }
+
         // Requesting TV shows without permissions returns a null error code, so use the error message
         if (errorMessage.indexOf("do not have permissions to") >= 0) {
           return new NoRequestPermissions(
