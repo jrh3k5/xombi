@@ -10,6 +10,10 @@ import {
 import { WebhookInitializer } from "./webhook_initializer";
 import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";
+import { UnresolvableAddressError } from "../ombi/errors";
+
+const errorMessageUnresolvedUser =
+  "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.";
 
 /**
  * Configuation for the application.
@@ -204,9 +208,14 @@ export class AppInitializer {
         await Promise.all(triagePromises);
       } catch (err) {
         console.log(err);
-        await conversation?.send(
-          "Sorry, I encountered an unexpected error while processing your message.",
-        );
+
+        if (err instanceof UnresolvableAddressError) {
+          await conversation?.send(errorMessageUnresolvedUser);
+        } else {
+          await conversation?.send(
+            "Sorry, I encountered an unexpected error while processing your message.",
+          );
+        }
       }
     }
   }

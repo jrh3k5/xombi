@@ -4,10 +4,6 @@ import { searchMovies, searchTV } from "./search";
 import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";
-import { UnresolvableAddressError } from "../ombi/errors";
-
-const errorMessageUnresolvedUser =
-  "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.";
 
 /**
  * Triage and handle the current step in a user's workflow based on their message content and state.
@@ -36,25 +32,9 @@ export async function triageCurrentStep(
       "To search for a movie, send 'movie <search terms>' to me; for TV shows, send 'tv <search terms>'",
     );
   } else if (sentContent.startsWith("movie ")) {
-    try {
-      await searchMovies(ombiClient, senderAddress, message, conversation);
-    } catch (err) {
-      if (err instanceof UnresolvableAddressError) {
-        await conversation.send(errorMessageUnresolvedUser);
-      } else {
-        throw err;
-      }
-    }
+    await searchMovies(ombiClient, senderAddress, message, conversation);
   } else if (sentContent.startsWith("tv ")) {
-    try {
-      await searchTV(ombiClient, senderAddress, message, conversation);
-    } catch (err) {
-      if (err instanceof UnresolvableAddressError) {
-        await conversation.send(errorMessageUnresolvedUser);
-      } else {
-        throw err;
-      }
-    }
+    await searchTV(ombiClient, senderAddress, message, conversation);
   } else {
     const [currentState] = getUserState(senderAddress);
     // if there's no current state, fall through to default

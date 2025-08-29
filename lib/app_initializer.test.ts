@@ -3,7 +3,9 @@ import {
   XMTPInstallationLimitError,
   XMTPClientCreationError,
 } from "./xmtp_client_factory";
-import { XmtpEnv } from "@xmtp/node-sdk";
+import { UnresolvableAddressError } from "../ombi/errors";
+import { XmtpEnv, Client } from "@xmtp/node-sdk";
+import { OmbiClient } from "../ombi/client";
 
 // Mock dependencies
 jest.mock("dotenv", () => ({
@@ -44,6 +46,14 @@ jest.mock("./webhook_initializer", () => ({
     parseEnvironmentConfig: jest.fn().mockReturnValue({ enabled: false }),
     initializeWebhookSystem: jest.fn().mockResolvedValue(null),
   },
+}));
+
+jest.mock("../media/triage", () => ({
+  triageCurrentStep: jest.fn(),
+}));
+
+jest.mock("./conversation_member", () => ({
+  getEthereumAddressesOfMember: jest.fn(),
 }));
 
 describe("AppInitializer", () => {
@@ -222,12 +232,143 @@ describe("AppInitializer", () => {
   });
 
   describe("startMessageProcessingLoop", () => {
+    const mockXmtpClient = {
+      inboxId: "agent-inbox-id",
+      conversations: {
+        streamAllMessages: jest.fn(),
+        getDmByInboxId: jest.fn(),
+      },
+    };
+
+    const mockConversation = {
+      send: jest.fn(),
+      members: jest.fn(),
+    };
+
+    const mockMessage = {
+      senderInboxId: "sender-inbox-id",
+      contentType: { typeId: "text" },
+      content: "test message",
+    };
+
+    const mockMember = {
+      inboxId: "sender-inbox-id",
+    };
+
+    const allowedAddresses = ["0x1234567890abcdef"];
+    const ombiClient = { id: "mock-ombi-client" };
+
+    beforeEach(() => {
+      mockXmtpClient.conversations.streamAllMessages.mockResolvedValue([]);
+      mockXmtpClient.conversations.getDmByInboxId.mockReturnValue(
+        mockConversation,
+      );
+      mockConversation.members.mockResolvedValue([mockMember]);
+      mockConversation.send.mockResolvedValue(undefined);
+    });
+
+    it("should handle UnresolvableAddressError with user-friendly message", async () => {
+      const { triageCurrentStep } = jest.requireMock("../media/triage");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member",
+      );
+
+      // Setup mocks
+      const errorMessage = new UnresolvableAddressError(
+        "0x123" as `0x${string}`,
+      );
+      triageCurrentStep.mockRejectedValue(errorMessage);
+      getEthereumAddressesOfMember.mockReturnValue(["0x1234567890abcdef"]);
+
+      // Mock the message stream to return one message then complete
+      const messageStream = [mockMessage];
+      mockXmtpClient.conversations.streamAllMessages.mockImplementation(
+        async function* () {
+          yield* messageStream;
+        },
+      );
+
+      // Create a promise that resolves when we've processed the message
+      let messageProcessed = false;
+      mockConversation.send.mockImplementation(async () => {
+        messageProcessed = true;
+        return Promise.resolve();
+      });
+
+      // Start the processing loop with a timeout to prevent infinite waiting
+      AppInitializer.startMessageProcessingLoop(
+        mockXmtpClient as unknown as Client,
+        allowedAddresses,
+        ombiClient as unknown as OmbiClient,
+      );
+
+      // Wait for the message to be processed
+      await new Promise<void>((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (messageProcessed) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 10);
+      });
+
+      // Verify the error handling behavior
+      expect(mockConversation.send).toHaveBeenCalledWith(
+        "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.",
+      );
+    });
+
+    it("should handle generic errors with fallback message", async () => {
+      const { triageCurrentStep } = jest.requireMock("../media/triage");
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member",
+      );
+
+      // Setup mocks
+      const genericError = new Error("Generic error");
+      triageCurrentStep.mockRejectedValue(genericError);
+      getEthereumAddressesOfMember.mockReturnValue(["0x1234567890abcdef"]);
+
+      // Mock the message stream to return one message then complete
+      const messageStream = [mockMessage];
+      mockXmtpClient.conversations.streamAllMessages.mockImplementation(
+        async function* () {
+          yield* messageStream;
+        },
+      );
+
+      // Create a promise that resolves when we've processed the message
+      let messageProcessed = false;
+      mockConversation.send.mockImplementation(async () => {
+        messageProcessed = true;
+        return Promise.resolve();
+      });
+
+      // Start the processing loop with a timeout to prevent infinite waiting
+      AppInitializer.startMessageProcessingLoop(
+        mockXmtpClient as unknown as Client,
+        allowedAddresses,
+        ombiClient as unknown as OmbiClient,
+      );
+
+      // Wait for the message to be processed
+      await new Promise<void>((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (messageProcessed) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 10);
+      });
+
+      // Verify the error handling behavior
+      expect(mockConversation.send).toHaveBeenCalledWith(
+        "Sorry, I encountered an unexpected error while processing your message.",
+      );
+    });
+
     it("should be a function that handles message processing", () => {
       expect(typeof AppInitializer.startMessageProcessingLoop).toBe("function");
     });
-
-    // Note: Testing the full message processing loop would require extensive mocking
-    // of XMTP client behavior, which would be complex. In a real implementation,
-    // this would likely be split into smaller, more testable functions.
   });
 });
