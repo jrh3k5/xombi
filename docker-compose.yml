@@ -20,7 +20,8 @@ services:
     env_file:
       - .env
     networks:
-      - xombi-network
+      xombi-network:
+        ipv4_address: 172.16.0.10
   ombi:
     image: ghcr.io/linuxserver/ombi:v4.47.1-ls215
     depends_on:
@@ -36,7 +37,8 @@ services:
     ports:
       - "9753:3579"
     networks:
-      - xombi-network
+      xombi-network:
+        ipv4_address: 172.16.0.20
   mysql:
     image: mysql:8.0
     container_name: ombi-mysql
@@ -51,8 +53,13 @@ services:
     ports:
       - "3306:3306"
     networks:
-      - xombi-network
+      xombi-network:
+        ipv4_address: 172.16.0.30
 
 networks:
   xombi-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/24
+          gateway: 172.16.0.1

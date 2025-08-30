@@ -103,7 +103,7 @@ describe("WebhookServer", () => {
   });
 
   describe("middleware and security", () => {
-    it("should accept requests from allowlisted IP", async () => {
+    it("should accept requests from allowlisted IP with valid Access-Token", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
         requestStatus: "Available",
@@ -113,6 +113,8 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -129,7 +131,49 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "192.168.1.100") // Not in allowlist
+        .expect(403);
+
+      expect(response.body).toEqual({ error: "Forbidden" });
+      expect(console.log).toHaveBeenCalledWith(
+        "Rejected unauthorized webhook request from:",
+        expect.any(String),
+      );
+    });
+
+    it("should reject requests without Access-Token header", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(403);
+
+      expect(response.body).toEqual({ error: "Forbidden" });
+      expect(console.log).toHaveBeenCalledWith(
+        "Rejected unauthorized webhook request from:",
+        expect.any(String),
+      );
+    });
+
+    it("should reject requests with invalid Access-Token", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", "invalid-token")
+        .set("X-Forwarded-For", "127.0.0.1")
         .expect(403);
 
       expect(response.body).toEqual({ error: "Forbidden" });
@@ -157,6 +201,7 @@ describe("WebhookServer", () => {
       const response = await request(testServer["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "::ffff:192.168.4.3") // IPv4-mapped IPv6
         .expect(200);
 
@@ -183,10 +228,126 @@ describe("WebhookServer", () => {
       const response = await request(testServer["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "192.168.4.3") // Regular IPv4
         .expect(200);
 
       expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should accept requests from IPv4 CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range that includes 172.16.0.20
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "172.16.0.20") // Should be within range
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should accept IPv4-mapped IPv6 requests from CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "::ffff:172.16.0.20") // IPv4-mapped IPv6 within range
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should reject requests from outside CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "10.0.0.1") // Outside the 172.16.0.0/12 range
+        .expect(403);
+
+      expect(response.body).toEqual({ error: "Forbidden" });
+
+      await testServer.stop();
+    });
+
+    it("should accept requests from mixed allowlist with both CIDR and specific IPs", async () => {
+      // Create a server with mixed allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12", "10.0.0.5", "::1"], // Mix of CIDR, IPv4, and IPv6
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      // Test CIDR range
+      await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "172.17.5.100")
+        .expect(200);
+
+      // Test specific IPv4
+      await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "10.0.0.5")
+        .expect(200);
 
       await testServer.stop();
     });
@@ -225,6 +386,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -251,6 +414,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -274,6 +439,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -285,6 +452,33 @@ describe("WebhookServer", () => {
         "Sent notification to 0x1234567890abcdef for Denied Movie (denied)",
       );
       expect(mockRequestTracker.hasRequest("550")).toBe(false); // Should be removed after notification
+    });
+
+    it("should process approved notification", async () => {
+      const payload: WebhookPayload = {
+        requestId: 171802,
+        providerId: "551",
+        title: "Generic TV Series",
+        type: "TV Show",
+        requestStatus: "Processing Request",
+        notificationType: "RequestApproved",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '✅ Your request for "Generic TV Series" has been approved and is being processed!',
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Sent notification to 0x1234567890abcdef for Generic TV Series (approved)",
+      );
+      expect(mockRequestTracker.hasRequest("551")).toBe(true); // Should NOT be removed for approved requests
     });
 
     it("should process partially available notification with complete episode info", async () => {
@@ -303,6 +497,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -332,6 +528,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -356,6 +554,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -379,6 +579,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -401,6 +603,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -420,6 +624,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -439,6 +645,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -458,6 +666,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -482,6 +692,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -505,6 +717,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -524,10 +738,33 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
       expect(mockNotificationHandler).toHaveBeenCalled();
+    });
+
+    it("should notify for RequestApproved notification type", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        providerId: "551",
+        type: "tv",
+        requestStatus: "Processing Request",
+        title: "Test Series",
+        notificationType: "RequestApproved",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalled();
+      expect(mockRequestTracker.hasRequest("551")).toBe(true); // Should NOT be removed for approved requests
     });
 
     it("should not notify for PendingApproval status", async () => {
@@ -541,6 +778,8 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -558,6 +797,7 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -577,6 +817,7 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -592,6 +833,7 @@ describe("WebhookServer", () => {
       await request(server["app"])
         .post("/webhook")
         .send("invalid json")
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .set("Content-Type", "application/json")
         .expect(400);
@@ -617,6 +859,7 @@ describe("WebhookServer", () => {
       const response = await request(server["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(500);
 
@@ -691,6 +934,7 @@ describe("WebhookServer", () => {
       const response = await request(serverWithoutHandler["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -718,7 +962,7 @@ describe("WebhookServer", () => {
       await request(debugServer["app"])
         .post("/webhook")
         .send(payload)
-        .set("access-token", "another-token")
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -779,6 +1023,7 @@ describe("WebhookServer", () => {
       await request(normalServer["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -809,6 +1054,7 @@ describe("WebhookServer", () => {
       await request(normalServer["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("X-Forwarded-For", "127.0.0.1")
         .expect(200);
 
@@ -839,6 +1085,7 @@ describe("WebhookServer", () => {
       await request(debugServer["app"])
         .post("/webhook")
         .send(payload)
+        .set("Access-Token", mockOmbiToken)
         .set("Authorization", "Some-Auth-Value") // Add auth header to test censoring
         .set("X-Forwarded-For", "127.0.0.1") // This will be rejected
         .expect(403);

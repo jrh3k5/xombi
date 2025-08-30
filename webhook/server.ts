@@ -166,10 +166,66 @@ export class WebhookServer {
     });
   }
 
+  /**
+   * Convert an IP address to a 32-bit integer for CIDR comparison
+   */
+  private ipToInt(ip: string): number {
+    return (
+      ip
+        .split(".")
+        .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0
+    );
+  }
+
+  /**
+   * Check if an IP address is within a CIDR range
+   */
+  private isIPInCIDR(ip: string, cidr: string): boolean {
+    if (!cidr.includes("/")) {
+      return false; // Not a CIDR notation
+    }
+
+    const [network, prefixLength] = cidr.split("/");
+    const prefix = parseInt(prefixLength, 10);
+
+    if (prefix < 0 || prefix > 32) {
+      return false; // Invalid prefix length
+    }
+
+    const networkInt = this.ipToInt(network);
+    const ipInt = this.ipToInt(ip);
+    const mask = (0xffffffff << (32 - prefix)) >>> 0;
+
+    return (networkInt & mask) === (ipInt & mask);
+  }
+
+  /**
+   * Extract IPv4 address from IPv4-mapped IPv6 address
+   */
+  private extractIPv4FromMapped(ipv6: string): string | null {
+    if (ipv6.startsWith("::ffff:")) {
+      return ipv6.substring(7);
+    }
+    return null;
+  }
+
   private isValidOmbiRequest(req: express.Request): boolean {
+    // Check Access-Token header
+    const accessToken = req.headers["access-token"];
+    if (!accessToken || accessToken !== this.ombiToken) {
+      return false;
+    }
+
     // Check if request comes from an allowlisted IP (where Ombi is running)
     const clientIP =
       req.ip || req.connection.remoteAddress || req.socket.remoteAddress;
+
+    if (!clientIP) {
+      return false;
+    }
+
+    // Extract IPv4 from IPv4-mapped IPv6 if applicable
+    const clientIPv4 = this.extractIPv4FromMapped(clientIP) || clientIP;
 
     let isAllowlistedIP = false;
     this.allowlistedIPs.forEach((allowlistedIP) => {
@@ -177,30 +233,37 @@ export class WebhookServer {
         return;
       }
 
-      // Direct match
-      if (clientIP == allowlistedIP) {
+      // Check if allowlisted entry is a CIDR range
+      if (allowlistedIP.includes("/")) {
+        // CIDR range check - try both original client IP and extracted IPv4
+        if (this.isIPInCIDR(clientIPv4, allowlistedIP)) {
+          isAllowlistedIP = true;
+          return;
+        }
+        // Also check original IP in case it's IPv4 and we extracted from mapped
+        if (
+          clientIP !== clientIPv4 &&
+          this.isIPInCIDR(clientIP, allowlistedIP)
+        ) {
+          isAllowlistedIP = true;
+          return;
+        }
+        return;
+      }
+
+      // Direct match - check both original IP and extracted IPv4
+      if (clientIP === allowlistedIP || clientIPv4 === allowlistedIP) {
         isAllowlistedIP = true;
         return;
       }
 
-      // Handle IPv4-mapped IPv6 addresses
-      // If clientIP is IPv4-mapped (::ffff:x.x.x.x) and allowlisted is IPv4, compare the IPv4 parts
-      if (clientIP?.startsWith("::ffff:") && !allowlistedIP.includes(":")) {
-        const ipv4Part = clientIP.substring(7); // Remove "::ffff:" prefix
-        if (ipv4Part === allowlistedIP) {
-          isAllowlistedIP = true;
-          return;
-        }
-      }
-
-      // Handle reverse case: if allowlisted is IPv4-mapped and clientIP is IPv4
-      if (
-        allowlistedIP.startsWith("::ffff:") &&
-        clientIP &&
-        !clientIP.includes(":")
-      ) {
-        const ipv4Part = allowlistedIP.substring(7); // Remove "::ffff:" prefix
-        if (clientIP === ipv4Part) {
+      // Handle IPv4-mapped IPv6 addresses in allowlist
+      if (allowlistedIP.startsWith("::ffff:")) {
+        const allowlistedIPv4 = this.extractIPv4FromMapped(allowlistedIP);
+        if (
+          allowlistedIPv4 &&
+          (clientIP === allowlistedIPv4 || clientIPv4 === allowlistedIPv4)
+        ) {
           isAllowlistedIP = true;
           return;
         }
@@ -268,7 +331,8 @@ export class WebhookServer {
     return (
       requestStatus === "available" ||
       requestStatus === "denied" ||
-      notificationType === "partiallyavailable"
+      notificationType === "partiallyavailable" ||
+      notificationType === "requestapproved"
     );
   }
 
@@ -335,6 +399,8 @@ export class WebhookServer {
       } else {
         notificationMessage = `📺 Some episodes of "${mediaTitle}" are now available!`;
       }
+    } else if (notificationType === "requestapproved") {
+      notificationMessage = `✅ Your request for "${mediaTitle}" has been approved and is being processed!`;
     } else {
       return; // Shouldn't happen as we check in isNotificationForUser
     }
@@ -342,15 +408,22 @@ export class WebhookServer {
     try {
       await this.notificationHandler(requesterAddress, notificationMessage);
 
-      // Only remove tracking for final states (available/denied), not for partial availability
-      if (notificationType !== "partiallyavailable") {
+      // Only remove tracking for final states (available/denied), not for intermediate states (partial availability/approved)
+      if (
+        notificationType !== "partiallyavailable" &&
+        notificationType !== "requestapproved"
+      ) {
         this.requestTracker.removeRequestByProviderId(providerId, mediaType);
       }
 
-      const statusOrType =
-        notificationType === "partiallyavailable"
-          ? "partially available"
-          : requestStatus;
+      let statusOrType: string;
+      if (notificationType === "partiallyavailable") {
+        statusOrType = "partially available";
+      } else if (notificationType === "requestapproved") {
+        statusOrType = "approved";
+      } else {
+        statusOrType = requestStatus;
+      }
       console.log(
         `Sent notification to ${requesterAddress} for ${mediaTitle} (${statusOrType})`,
       );

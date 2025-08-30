@@ -55,19 +55,20 @@ export class WebhookManager {
    */
   async registerWebhook(
     webhookUrl: string,
-    applicationToken?: string,
+    applicationToken: string,
   ): Promise<boolean> {
     try {
       // First, check current settings to avoid unnecessary updates
       const currentSettings = await this.getCurrentWebhookSettings();
 
-      // If webhook is already configured with the same URL, don't update
+      // If webhook is already configured with the same URL and application token, don't update
       if (
         currentSettings.enabled &&
-        currentSettings.webhookUrl === webhookUrl
+        currentSettings.webhookUrl === webhookUrl &&
+        currentSettings.applicationToken === applicationToken
       ) {
         console.log(
-          "Webhook already configured with the same URL, skipping registration",
+          "Webhook already configured with the same URL and application token, skipping registration",
         );
         return true;
       }
@@ -102,45 +103,6 @@ export class WebhookManager {
       }
     } catch (error) {
       console.error("Error registering webhook with Ombi:", error);
-      return false;
-    }
-  }
-
-  /**
-   * Un-registers this agent's webhook from Ombi.
-   * @returns true if the un-registration succeeded; false if not.
-   */
-  async unregisterWebhook(): Promise<boolean> {
-    try {
-      const webhookSettings: Partial<WebhookSettings> = {
-        enabled: false,
-        webhookUrl: null,
-        applicationToken: null,
-      };
-
-      const response = await axios.post(
-        `${this.ombiApiUrl}/api/v1/Settings/notifications/webhook`,
-        webhookSettings,
-        {
-          headers: {
-            ApiKey: this.ombiApiKey,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      if (response.data === true) {
-        console.log("Webhook successfully unregistered from Ombi");
-        return true;
-      } else {
-        console.error(
-          "Failed to unregister webhook, unexpected response:",
-          response.data,
-        );
-        return false;
-      }
-    } catch (error) {
-      console.error("Error unregistering webhook from Ombi:", error);
       return false;
     }
   }
