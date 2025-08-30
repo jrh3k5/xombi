@@ -152,31 +152,26 @@ export class WebhookInitializer {
     await webhookServer.start(webhookPort);
 
     // Register webhook with Ombi
-    try {
-      let webhookUrl: string;
+    let webhookUrl: string;
 
-      if (config.baseUrl) {
-        webhookUrl = `${config.baseUrl}/webhook`;
-        console.log(`Using custom webhook base URL: ${config.baseUrl}`);
-      } else {
-        webhookUrl = buildWebhookURL(webhookPort);
-      }
+    if (config.baseUrl) {
+      webhookUrl = `${config.baseUrl}/webhook`;
+      console.log(`Using custom webhook base URL: ${config.baseUrl}`);
+    } else {
+      webhookUrl = buildWebhookURL(webhookPort);
+    }
 
-      console.log(`Registering webhook URL: ${webhookUrl}`);
-      const registered = await webhookManager.registerWebhook(
-        webhookUrl,
-        config.applicationKey,
+    console.log(`Registering webhook URL: ${webhookUrl}`);
+    const registered = await webhookManager.registerWebhook(
+      webhookUrl,
+      config.applicationKey,
+    );
+    if (registered) {
+      console.log("Webhook successfully registered with Ombi");
+    } else {
+      console.warn(
+        "Failed to register webhook with Ombi - notifications may not work",
       );
-      if (registered) {
-        console.log("Webhook successfully registered with Ombi");
-      } else {
-        console.warn(
-          "Failed to register webhook with Ombi - notifications may not work",
-        );
-      }
-    } catch (error) {
-      console.error("Error setting up webhook:", error);
-      console.warn("Continuing without webhook notifications");
     }
 
     return {

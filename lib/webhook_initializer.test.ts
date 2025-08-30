@@ -318,25 +318,12 @@ describe("WebhookInitializer", () => {
         .requireMock("../ombi/webhook")
         .WebhookManager.mockReturnValue(mockWebhookManager);
 
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-      const warnSpy = jest.spyOn(console, "warn").mockImplementation();
-
-      const result = await WebhookInitializer.initializeWebhookSystem(
-        config,
-        mockXmtpClient as unknown as Client,
-      );
-
-      expect(result).not.toBeNull();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error setting up webhook:",
-        expect.any(Error),
-      );
-      expect(warnSpy).toHaveBeenCalledWith(
-        "Continuing without webhook notifications",
-      );
-
-      consoleSpy.mockRestore();
-      warnSpy.mockRestore();
+      await expect(
+        WebhookInitializer.initializeWebhookSystem(
+          config,
+          mockXmtpClient as unknown as Client,
+        ),
+      ).rejects.toThrow("Registration failed");
     });
   });
 });
