@@ -236,6 +236,121 @@ describe("WebhookServer", () => {
 
       await testServer.stop();
     });
+
+    it("should accept requests from IPv4 CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range that includes 172.16.0.20
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "172.16.0.20") // Should be within range
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should accept IPv4-mapped IPv6 requests from CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "::ffff:172.16.0.20") // IPv4-mapped IPv6 within range
+        .expect(200);
+
+      expect(response.body).toEqual({ received: true });
+
+      await testServer.stop();
+    });
+
+    it("should reject requests from outside CIDR range", async () => {
+      // Create a server with CIDR range in the allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12"], // CIDR range
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      const response = await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "10.0.0.1") // Outside the 172.16.0.0/12 range
+        .expect(403);
+
+      expect(response.body).toEqual({ error: "Forbidden" });
+
+      await testServer.stop();
+    });
+
+    it("should accept requests from mixed allowlist with both CIDR and specific IPs", async () => {
+      // Create a server with mixed allowlist
+      const testServer = new WebhookServer(
+        mockRequestTracker,
+        mockOmbiToken,
+        ["172.16.0.0/12", "10.0.0.5", "::1"], // Mix of CIDR, IPv4, and IPv6
+        true,
+      );
+
+      const payload: WebhookPayload = {
+        requestId: 123,
+        requestStatus: "Available",
+        notificationType: "MediaAvailable",
+      };
+
+      // Test CIDR range
+      await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "172.17.5.100")
+        .expect(200);
+
+      // Test specific IPv4
+      await request(testServer["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "10.0.0.5")
+        .expect(200);
+
+      await testServer.stop();
+    });
   });
 
   describe("health endpoint", () => {
