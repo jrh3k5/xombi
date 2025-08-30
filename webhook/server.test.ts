@@ -454,6 +454,33 @@ describe("WebhookServer", () => {
       expect(mockRequestTracker.hasRequest("550")).toBe(false); // Should be removed after notification
     });
 
+    it("should process approved notification", async () => {
+      const payload: WebhookPayload = {
+        requestId: 171802,
+        providerId: "551",
+        title: "Generic TV Series",
+        type: "TV Show",
+        requestStatus: "Processing Request",
+        notificationType: "RequestApproved",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalledWith(
+        "0x1234567890abcdef",
+        '✅ Your request for "Generic TV Series" has been approved and is being processed!',
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        "Sent notification to 0x1234567890abcdef for Generic TV Series (approved)",
+      );
+      expect(mockRequestTracker.hasRequest("551")).toBe(true); // Should NOT be removed for approved requests
+    });
+
     it("should process partially available notification with complete episode info", async () => {
       const payload: WebhookPayload = {
         requestId: 241554,
@@ -717,6 +744,27 @@ describe("WebhookServer", () => {
         .expect(200);
 
       expect(mockNotificationHandler).toHaveBeenCalled();
+    });
+
+    it("should notify for RequestApproved notification type", async () => {
+      const payload: WebhookPayload = {
+        requestId: 123,
+        providerId: "550",
+        type: "tv",
+        requestStatus: "Processing Request",
+        title: "Test Series",
+        notificationType: "RequestApproved",
+      };
+
+      await request(server["app"])
+        .post("/webhook")
+        .send(payload)
+        .set("Access-Token", mockOmbiToken)
+        .set("X-Forwarded-For", "127.0.0.1")
+        .expect(200);
+
+      expect(mockNotificationHandler).toHaveBeenCalled();
+      expect(mockRequestTracker.hasRequest("550")).toBe(true); // Should NOT be removed for approved requests
     });
 
     it("should not notify for PendingApproval status", async () => {

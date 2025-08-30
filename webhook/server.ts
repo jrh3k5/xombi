@@ -331,7 +331,8 @@ export class WebhookServer {
     return (
       requestStatus === "available" ||
       requestStatus === "denied" ||
-      notificationType === "partiallyavailable"
+      notificationType === "partiallyavailable" ||
+      notificationType === "requestapproved"
     );
   }
 
@@ -398,6 +399,8 @@ export class WebhookServer {
       } else {
         notificationMessage = `📺 Some episodes of "${mediaTitle}" are now available!`;
       }
+    } else if (notificationType === "requestapproved") {
+      notificationMessage = `✅ Your request for "${mediaTitle}" has been approved and is being processed!`;
     } else {
       return; // Shouldn't happen as we check in isNotificationForUser
     }
@@ -405,15 +408,22 @@ export class WebhookServer {
     try {
       await this.notificationHandler(requesterAddress, notificationMessage);
 
-      // Only remove tracking for final states (available/denied), not for partial availability
-      if (notificationType !== "partiallyavailable") {
+      // Only remove tracking for final states (available/denied), not for intermediate states (partial availability/approved)
+      if (
+        notificationType !== "partiallyavailable" &&
+        notificationType !== "requestapproved"
+      ) {
         this.requestTracker.removeRequestByProviderId(providerId, mediaType);
       }
 
-      const statusOrType =
-        notificationType === "partiallyavailable"
-          ? "partially available"
-          : requestStatus;
+      let statusOrType: string;
+      if (notificationType === "partiallyavailable") {
+        statusOrType = "partially available";
+      } else if (notificationType === "requestapproved") {
+        statusOrType = "approved";
+      } else {
+        statusOrType = requestStatus;
+      }
       console.log(
         `Sent notification to ${requesterAddress} for ${mediaTitle} (${statusOrType})`,
       );
