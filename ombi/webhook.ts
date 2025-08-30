@@ -55,7 +55,7 @@ export class WebhookManager {
    */
   async registerWebhook(
     webhookUrl: string,
-    applicationToken?: string,
+    applicationToken: string,
   ): Promise<boolean> {
     try {
       // First, check current settings to avoid unnecessary updates

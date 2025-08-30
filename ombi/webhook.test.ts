@@ -111,7 +111,10 @@ describe("WebhookManager", () => {
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
       mockedAxios.post.mockResolvedValue({ data: true });
 
-      const result = await webhookManager.registerWebhook(mockWebhookUrl);
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
 
       expect(result).toBe(true);
       expect(mockedAxios.post).toHaveBeenCalledWith(
@@ -119,7 +122,7 @@ describe("WebhookManager", () => {
         {
           enabled: true,
           webhookUrl: mockWebhookUrl,
-          applicationToken: null,
+          applicationToken: mockApplicationToken,
         },
         {
           headers: {
@@ -180,7 +183,10 @@ describe("WebhookManager", () => {
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
       mockedAxios.post.mockResolvedValue({ data: false });
 
-      const result = await webhookManager.registerWebhook(mockWebhookUrl);
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
 
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(
@@ -200,7 +206,10 @@ describe("WebhookManager", () => {
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
       mockedAxios.post.mockRejectedValue(mockError);
 
-      const result = await webhookManager.registerWebhook(mockWebhookUrl);
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
 
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(
@@ -213,7 +222,10 @@ describe("WebhookManager", () => {
       const mockError = new Error("Failed to fetch settings");
       mockedAxios.get.mockRejectedValue(mockError);
 
-      const result = await webhookManager.registerWebhook(mockWebhookUrl);
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
 
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(

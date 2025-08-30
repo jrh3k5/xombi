@@ -219,6 +219,7 @@ describe("WebhookInitializer", () => {
       expect(mockWebhookServer.start).toHaveBeenCalledWith(3000);
       expect(mockWebhookManager.registerWebhook).toHaveBeenCalledWith(
         "http://192.168.1.100:3000/webhook",
+        "test-key",
       );
     });
 
@@ -254,6 +255,7 @@ describe("WebhookInitializer", () => {
 
       expect(mockWebhookManager.registerWebhook).toHaveBeenCalledWith(
         "http://custom:3000/webhook",
+        "test-key",
       );
     });
 

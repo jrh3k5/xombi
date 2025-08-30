@@ -116,6 +116,12 @@ export class WebhookInitializer {
       return null;
     }
 
+    if (!config.applicationKey) {
+      throw new Error(
+        "An application key is required for webhook integrations.",
+      );
+    }
+
     this.validateConfig(config);
     console.log("Webhook notifications enabled - setting up webhook system");
 
@@ -157,7 +163,10 @@ export class WebhookInitializer {
       }
 
       console.log(`Registering webhook URL: ${webhookUrl}`);
-      const registered = await webhookManager.registerWebhook(webhookUrl);
+      const registered = await webhookManager.registerWebhook(
+        webhookUrl,
+        config.applicationKey,
+      );
       if (registered) {
         console.log("Webhook successfully registered with Ombi");
       } else {
