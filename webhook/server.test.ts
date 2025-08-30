@@ -749,7 +749,7 @@ describe("WebhookServer", () => {
     it("should notify for RequestApproved notification type", async () => {
       const payload: WebhookPayload = {
         requestId: 123,
-        providerId: "550",
+        providerId: "551",
         type: "tv",
         requestStatus: "Processing Request",
         title: "Test Series",
@@ -764,7 +764,7 @@ describe("WebhookServer", () => {
         .expect(200);
 
       expect(mockNotificationHandler).toHaveBeenCalled();
-      expect(mockRequestTracker.hasRequest("550")).toBe(true); // Should NOT be removed for approved requests
+      expect(mockRequestTracker.hasRequest("551")).toBe(true); // Should NOT be removed for approved requests
     });
 
     it("should not notify for PendingApproval status", async () => {
