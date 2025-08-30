@@ -169,9 +169,7 @@ export class WebhookInitializer {
     if (registered) {
       console.log("Webhook successfully registered with Ombi");
     } else {
-      console.warn(
-        "Failed to register webhook with Ombi - notifications may not work",
-      );
+      throw new Error("Failed to register webhook with Ombi");
     }
 
     return {

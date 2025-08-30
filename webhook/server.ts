@@ -166,7 +166,52 @@ export class WebhookServer {
     });
   }
 
+  /**
+   * Convert an IP address to a 32-bit integer for CIDR comparison
+   */
+  private ipToInt(ip: string): number {
+    return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+  }
+
+  /**
+   * Check if an IP address is within a CIDR range
+   */
+  private isIPInCIDR(ip: string, cidr: string): boolean {
+    if (!cidr.includes('/')) {
+      return false; // Not a CIDR notation
+    }
+
+    const [network, prefixLength] = cidr.split('/');
+    const prefix = parseInt(prefixLength, 10);
+    
+    if (prefix < 0 || prefix > 32) {
+      return false; // Invalid prefix length
+    }
+
+    const networkInt = this.ipToInt(network);
+    const ipInt = this.ipToInt(ip);
+    const mask = (0xffffffff << (32 - prefix)) >>> 0;
+
+    return (networkInt & mask) === (ipInt & mask);
+  }
+
+  /**
+   * Extract IPv4 address from IPv4-mapped IPv6 address
+   */
+  private extractIPv4FromMapped(ipv6: string): string | null {
+    if (ipv6.startsWith('::ffff:')) {
+      return ipv6.substring(7);
+    }
+    return null;
+  }
+
   private isValidOmbiRequest(req: express.Request): boolean {
+    // Check Access-Token header
+    const accessToken = req.headers["access-token"];
+    if (!accessToken || accessToken !== this.ombiToken) {
+      return false;
+    }
+
     // Check if request comes from an allowlisted IP (where Ombi is running)
     const clientIP =
       req.ip || req.connection.remoteAddress || req.socket.remoteAddress;

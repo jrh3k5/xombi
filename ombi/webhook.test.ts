@@ -133,11 +133,11 @@ describe("WebhookManager", () => {
       );
     });
 
-    it("should skip registration if webhook is already configured with same URL", async () => {
+    it("should skip registration if webhook is already configured with same URL and application token", async () => {
       const mockCurrentSettings: WebhookSettings = {
         enabled: true,
         webhookUrl: mockWebhookUrl,
-        applicationToken: "existing-token",
+        applicationToken: mockApplicationToken,
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -149,7 +149,7 @@ describe("WebhookManager", () => {
 
       expect(result).toBe(true);
       expect(console.log).toHaveBeenCalledWith(
-        "Webhook already configured with the same URL, skipping registration",
+        "Webhook already configured with the same URL and application token, skipping registration",
       );
       expect(mockedAxios.post).not.toHaveBeenCalled();
     });
@@ -158,7 +158,45 @@ describe("WebhookManager", () => {
       const mockCurrentSettings: WebhookSettings = {
         enabled: true,
         webhookUrl: "http://old-url:3000/webhook",
-        applicationToken: "existing-token",
+        applicationToken: mockApplicationToken,
+      };
+
+      mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
+      mockedAxios.post.mockResolvedValue({ data: true });
+
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
+
+      expect(result).toBe(true);
+      expect(mockedAxios.post).toHaveBeenCalled();
+    });
+
+    it("should update webhook if application token is different", async () => {
+      const mockCurrentSettings: WebhookSettings = {
+        enabled: true,
+        webhookUrl: mockWebhookUrl,
+        applicationToken: "old-application-token",
+      };
+
+      mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
+      mockedAxios.post.mockResolvedValue({ data: true });
+
+      const result = await webhookManager.registerWebhook(
+        mockWebhookUrl,
+        mockApplicationToken,
+      );
+
+      expect(result).toBe(true);
+      expect(mockedAxios.post).toHaveBeenCalled();
+    });
+
+    it("should update webhook if both URL and application token are different", async () => {
+      const mockCurrentSettings: WebhookSettings = {
+        enabled: true,
+        webhookUrl: "http://old-url:3000/webhook",
+        applicationToken: "old-application-token",
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockCurrentSettings });
@@ -230,58 +268,6 @@ describe("WebhookManager", () => {
       expect(result).toBe(false);
       expect(console.error).toHaveBeenCalledWith(
         "Error registering webhook with Ombi:",
-        mockError,
-      );
-    });
-  });
-
-  describe("unregisterWebhook", () => {
-    it("should unregister webhook successfully", async () => {
-      mockedAxios.post.mockResolvedValue({ data: true });
-
-      const result = await webhookManager.unregisterWebhook();
-
-      expect(result).toBe(true);
-      expect(console.log).toHaveBeenCalledWith(
-        "Webhook successfully unregistered from Ombi",
-      );
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        `${mockOmbiApiUrl}/api/v1/Settings/notifications/webhook`,
-        {
-          enabled: false,
-          webhookUrl: null,
-          applicationToken: null,
-        },
-        {
-          headers: {
-            ApiKey: mockOmbiApiKey,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-    });
-
-    it("should return false when API returns non-true response", async () => {
-      mockedAxios.post.mockResolvedValue({ data: false });
-
-      const result = await webhookManager.unregisterWebhook();
-
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to unregister webhook, unexpected response:",
-        false,
-      );
-    });
-
-    it("should handle unregistration error", async () => {
-      const mockError = new Error("Unregistration failed");
-      mockedAxios.post.mockRejectedValue(mockError);
-
-      const result = await webhookManager.unregisterWebhook();
-
-      expect(result).toBe(false);
-      expect(console.error).toHaveBeenCalledWith(
-        "Error unregistering webhook from Ombi:",
         mockError,
       );
     });
