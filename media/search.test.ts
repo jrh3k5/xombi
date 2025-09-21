@@ -1,4 +1,4 @@
-import { OmbiClient } from "../ombi/client";
+import { OmbiClient } from "../ombi/client.js";
 import { searchMovies, searchTV } from "./search.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 

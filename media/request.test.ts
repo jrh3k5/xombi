@@ -1,16 +1,16 @@
 import { requestMovie, requestTV } from "./request.js";
-import { UserSearchState } from "../state/user_state";
+import { UserSearchState } from "../state/user_state.js";
 import {
   MovieAlreadyRequestedError,
   NoRequestPermissions,
   ShowAlreadyRequestedError,
-} from "../ombi/errors";
-import { MovieSearchResult, TVSearchResult } from "../ombi/model";
+} from "../ombi/errors.js";
+import { MovieSearchResult, TVSearchResult } from "../ombi/model.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 // Use module object for jest.spyOn
-import * as getUserStateModule from "../state/user_state";
-import { OmbiClient } from "../ombi/client";
+import * as getUserStateModule from "../state/user_state.js";
+import { OmbiClient } from "../ombi/client.js";
 
 describe("requestMovie", () => {
   const senderAddress = "0xabc" as `0x${string}`;

@@ -2,7 +2,7 @@ import {
   XMTPClientFactory,
   XMTPConfig,
   XMTPInstallationLimitError,
-} from "./xmtp_client_factory";
+} from "./xmtp_client_factory.js";
 import { XmtpEnv } from "@xmtp/node-sdk";
 
 // Mock dependencies

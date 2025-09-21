@@ -1,4 +1,4 @@
-import { UserSearchState, getUserState } from "../state/user_state";
+import { UserSearchState, getUserState } from "../state/user_state.js";
 import { requestMovie, requestTV } from "./request.js";
 import { searchMovies, searchTV } from "./search.js";
 import { OmbiClient } from "../ombi/client";

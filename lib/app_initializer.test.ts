@@ -3,16 +3,16 @@ import {
   XMTPInstallationLimitError,
   XMTPClientCreationError,
 } from "./xmtp_client_factory.js";
-import { UnresolvableAddressError } from "../ombi/errors";
+import { UnresolvableAddressError } from "../ombi/errors.js";
 import { XmtpEnv, Client } from "@xmtp/node-sdk";
-import { OmbiClient } from "../ombi/client";
+import { OmbiClient } from "../ombi/client.js";
 
 // Mock dependencies
 jest.mock("dotenv", () => ({
   config: jest.fn(),
 }));
 
-jest.mock("../ombi/client", () => ({
+jest.mock("../ombi/client.js", () => ({
   newClient: jest.fn().mockReturnValue({ id: "mock-ombi-client" }),
 }));
 

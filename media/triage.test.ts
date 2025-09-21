@@ -1,6 +1,6 @@
 import { triageCurrentStep } from "./triage.js";
-import { UserSearchState } from "../state/user_state";
-import { OmbiClient } from "../ombi/client";
+import { UserSearchState } from "../state/user_state.js";
+import { OmbiClient } from "../ombi/client.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 describe("triageCurrentStep", () => {
