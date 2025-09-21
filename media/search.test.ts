@@ -1,5 +1,5 @@
 import { OmbiClient } from "../ombi/client";
-import { searchMovies, searchTV } from "./search";
+import { searchMovies, searchTV } from "./search.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 describe("search.ts", () => {

@@ -1,4 +1,4 @@
-import { MovieSearchResult, TVSearchResult } from "./model";
+import { MovieSearchResult, TVSearchResult } from "./model.js";
 
 describe("MovieSearchResult", () => {
   describe("getListText", () => {

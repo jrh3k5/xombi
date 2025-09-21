@@ -1,4 +1,4 @@
-import { convertEOAToSigner } from "./eoa";
+import { convertEOAToSigner } from "./eoa.js";
 import { IdentifierKind } from "@xmtp/node-bindings";
 
 jest.mock("viem", () => {

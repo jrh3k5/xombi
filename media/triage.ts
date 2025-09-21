@@ -1,6 +1,6 @@
 import { UserSearchState, getUserState } from "../state/user_state";
-import { requestMovie, requestTV } from "./request";
-import { searchMovies, searchTV } from "./search";
+import { requestMovie, requestTV } from "./request.js";
+import { searchMovies, searchTV } from "./search.js";
 import { OmbiClient } from "../ombi/client";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server";

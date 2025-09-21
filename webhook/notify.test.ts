@@ -1,8 +1,8 @@
-import { XMTPNotifier } from "./notify";
+import { XMTPNotifier } from "./notify.js";
 import { Client, Dm, GroupMember } from "@xmtp/node-sdk";
 
 // Mock dependencies
-jest.mock("../lib/conversation_member", () => ({
+jest.mock("../lib/conversation_member.js", () => ({
   getEthereumAddressesOfMember: jest.fn(),
 }));
 
@@ -63,7 +63,7 @@ describe("XMTPNotifier", () => {
   describe("sendNotification", () => {
     beforeEach(() => {
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember.mockReturnValue([testAddress]);
     });
@@ -109,7 +109,7 @@ describe("XMTPNotifier", () => {
     it("should handle case insensitive address matching", async () => {
       const upperCaseAddress = testAddress.toUpperCase();
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember.mockReturnValue([upperCaseAddress]);
 
@@ -155,7 +155,7 @@ describe("XMTPNotifier", () => {
       } as unknown as GroupMember;
 
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember
         .mockReturnValueOnce(["0xother"]) // First member
@@ -177,7 +177,7 @@ describe("XMTPNotifier", () => {
 
     it("should handle no existing conversation found", async () => {
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember.mockReturnValue(["0xother"]); // Different address
 
@@ -258,7 +258,7 @@ describe("XMTPNotifier", () => {
 
     it("should handle getEthereumAddressesOfMember returning empty array", async () => {
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember.mockReturnValue([]); // No addresses
 
@@ -342,7 +342,7 @@ describe("XMTPNotifier", () => {
       } as unknown as GroupMember;
 
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "../lib/conversation_member",
+        "../lib/conversation_member.js",
       );
       getEthereumAddressesOfMember.mockReturnValue([]);
 

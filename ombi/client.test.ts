@@ -1,13 +1,13 @@
 import axios, { AxiosHeaders } from "axios";
-import { HttpOmbiClient } from "./client";
+import { HttpOmbiClient } from "./client.js";
 import {
   MovieAlreadyRequestedError,
   NoOmbiResponseError,
   NoRequestPermissions,
   ShowAlreadyRequestedError,
   UnresolvableAddressError,
-} from "./errors";
-import { MovieSearchResult, TVSearchResult } from "./model";
+} from "./errors.js";
+import { MovieSearchResult, TVSearchResult } from "./model.js";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.MockedFunction<typeof axios>;

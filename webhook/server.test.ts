@@ -1,5 +1,5 @@
 import request from "supertest";
-import { WebhookServer, WebhookPayload, RequestTracker } from "./server";
+import { WebhookServer, WebhookPayload, RequestTracker } from "./server.js";
 
 interface MockTrackedRequest {
   requestId: string;

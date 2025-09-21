@@ -1,4 +1,4 @@
-import { requestMovie, requestTV } from "./request";
+import { requestMovie, requestTV } from "./request.js";
 import { UserSearchState } from "../state/user_state";
 import {
   MovieAlreadyRequestedError,
