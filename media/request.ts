@@ -2,20 +2,20 @@ import {
   UserSearchState,
   clearUserState,
   getUserState,
-} from "../state/user_state";
+} from "../state/user_state.js";
 import {
   MovieAlreadyRequestedError,
   NoRequestPermissions,
   ShowAlreadyRequestedError,
-} from "../ombi/errors";
-import { OmbiClient } from "../ombi/client";
+} from "../ombi/errors.js";
+import { OmbiClient } from "../ombi/client.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import {
   ListableResult,
   MovieSearchResult,
   TVSearchResult,
-} from "../ombi/model";
-import { RequestTracker } from "../webhook/server";
+} from "../ombi/model.js";
+import { RequestTracker } from "../webhook/server.js";
 
 /**
  * Submit a movie request to Ombi based on the user's selection.

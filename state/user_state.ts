@@ -1,4 +1,4 @@
-import { ListableResult } from "../ombi/model";
+import { ListableResult } from "../ombi/model.js";
 
 const userStates = new Map<string, UserState>();
 
