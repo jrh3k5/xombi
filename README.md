@@ -90,10 +90,22 @@ When enabled, the bot will automatically register a webhook with your Ombi insta
 
 ### Running the Service
 
-Once the steps in [Configuration](#configuration) have been set up, run:
+Once the steps in [Configuration](#configuration) have been set up, you have several options to run the service:
 
+#### Development Mode (All Platforms)
+```
+npm run dev
+```
+or
 ```
 npx tsx index.ts
+```
+
+#### Production Mode
+First build the TypeScript code, then run:
+```
+npm run build
+npm start
 ```
 
 Following that, send `help` to the bot for instructions on how to interact with it.
