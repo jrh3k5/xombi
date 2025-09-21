@@ -1,4 +1,4 @@
-import { AppInitializer } from "./lib/app_initializer";
+import { AppInitializer } from "./lib/app_initializer.js";
 
 async function main(): Promise<void> {
   await AppInitializer.initialize();

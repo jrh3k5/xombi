@@ -1,4 +1,4 @@
-import { getEthereumAddressesOfMember } from "./conversation_member";
+import { getEthereumAddressesOfMember } from "./conversation_member.js";
 import { IdentifierKind } from "@xmtp/node-bindings";
 import type { GroupMember } from "@xmtp/node-sdk";
 

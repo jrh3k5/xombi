@@ -1,5 +1,5 @@
 import axios from "axios";
-import { WebhookManager, WebhookSettings } from "./webhook";
+import { WebhookManager, WebhookSettings } from "./webhook.js";
 
 // Mock axios
 jest.mock("axios");

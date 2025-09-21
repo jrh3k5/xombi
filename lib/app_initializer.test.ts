@@ -1,22 +1,22 @@
-import { AppInitializer } from "./app_initializer";
+import { AppInitializer } from "./app_initializer.js";
 import {
   XMTPInstallationLimitError,
   XMTPClientCreationError,
-} from "./xmtp_client_factory";
-import { UnresolvableAddressError } from "../ombi/errors";
+} from "./xmtp_client_factory.js";
+import { UnresolvableAddressError } from "../ombi/errors.js";
 import { XmtpEnv, Client } from "@xmtp/node-sdk";
-import { OmbiClient } from "../ombi/client";
+import { OmbiClient } from "../ombi/client.js";
 
 // Mock dependencies
 jest.mock("dotenv", () => ({
   config: jest.fn(),
 }));
 
-jest.mock("../ombi/client", () => ({
+jest.mock("../ombi/client.js", () => ({
   newClient: jest.fn().mockReturnValue({ id: "mock-ombi-client" }),
 }));
 
-jest.mock("./xmtp_client_factory", () => ({
+jest.mock("./xmtp_client_factory.js", () => ({
   XMTPClientFactory: {
     parseEnvironmentConfig: jest.fn(),
     createClient: jest.fn(),
@@ -41,7 +41,7 @@ jest.mock("./xmtp_client_factory", () => ({
   },
 }));
 
-jest.mock("./webhook_initializer", () => ({
+jest.mock("./webhook_initializer.js", () => ({
   WebhookInitializer: {
     parseEnvironmentConfig: jest.fn().mockReturnValue({ enabled: false }),
     initializeWebhookSystem: jest.fn().mockResolvedValue(null),
@@ -52,7 +52,7 @@ jest.mock("../media/triage", () => ({
   triageCurrentStep: jest.fn(),
 }));
 
-jest.mock("./conversation_member", () => ({
+jest.mock("./conversation_member.js", () => ({
   getEthereumAddressesOfMember: jest.fn(),
 }));
 
@@ -113,8 +113,12 @@ describe("AppInitializer", () => {
     it("should initialize successfully with webhooks disabled", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory");
-      const { WebhookInitializer } = jest.requireMock("./webhook_initializer");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
+      const { WebhookInitializer } = jest.requireMock(
+        "./webhook_initializer.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -152,7 +156,9 @@ describe("AppInitializer", () => {
     it("should handle XMTP installation limit error gracefully", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -188,7 +194,9 @@ describe("AppInitializer", () => {
     it("should handle XMTP client creation error", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -214,7 +222,9 @@ describe("AppInitializer", () => {
     it("should rethrow unknown errors", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -268,9 +278,9 @@ describe("AppInitializer", () => {
     });
 
     it("should handle UnresolvableAddressError with user-friendly message", async () => {
-      const { triageCurrentStep } = jest.requireMock("../media/triage");
+      const { triageCurrentStep } = jest.requireMock("../media/triage.js");
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "./conversation_member",
+        "./conversation_member.js",
       );
 
       // Setup mocks
@@ -319,9 +329,9 @@ describe("AppInitializer", () => {
     });
 
     it("should handle generic errors with fallback message", async () => {
-      const { triageCurrentStep } = jest.requireMock("../media/triage");
+      const { triageCurrentStep } = jest.requireMock("../media/triage.js");
       const { getEthereumAddressesOfMember } = jest.requireMock(
-        "./conversation_member",
+        "./conversation_member.js",
       );
 
       // Setup mocks

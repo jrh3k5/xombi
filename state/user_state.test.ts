@@ -4,7 +4,7 @@ import {
   setUserState,
   UserSearchState,
   UserStateContext,
-} from "./user_state";
+} from "./user_state.js";
 
 describe("user_state module", () => {
   const address = "0xabc" as `0x${string}`;

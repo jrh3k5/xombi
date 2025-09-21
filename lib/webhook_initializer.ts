@@ -1,9 +1,9 @@
 import { Client } from "@xmtp/node-sdk";
-import { WebhookServer } from "../webhook/server";
-import { MemoryRequestTracker } from "../state/request_tracker";
-import { XMTPNotifier } from "../webhook/notify";
-import { WebhookManager } from "../ombi/webhook";
-import { buildWebhookURL } from "./network";
+import { WebhookServer } from "../webhook/server.js";
+import { MemoryRequestTracker } from "../state/request_tracker.js";
+import { XMTPNotifier } from "../webhook/notify.js";
+import { WebhookManager } from "../ombi/webhook.js";
+import { buildWebhookURL } from "./network.js";
 
 /**
  * Configuration interface for webhook system setup.

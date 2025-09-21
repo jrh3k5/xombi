@@ -3,8 +3,11 @@
   "version": "2.2.3",
   "description": "An XMTP bot used to handle requests for Ombi",
   "type": "module",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "dev": "npx tsx index.ts",
     "test": "npx jest --config jest.config.cjs --coverage",
     "format": "npx prettier . --write",
     "lint": "npx eslint .",

@@ -1,4 +1,4 @@
-import { getLocalIPAddress, buildWebhookURL } from "./network";
+import { getLocalIPAddress, buildWebhookURL } from "./network.js";
 import { networkInterfaces } from "os";
 
 // Mock the os module

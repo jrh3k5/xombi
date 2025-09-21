@@ -1,6 +1,6 @@
-import { triageCurrentStep } from "./triage";
-import { UserSearchState } from "../state/user_state";
-import { OmbiClient } from "../ombi/client";
+import { triageCurrentStep } from "./triage.js";
+import { UserSearchState } from "../state/user_state.js";
+import { OmbiClient } from "../ombi/client.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 describe("triageCurrentStep", () => {
@@ -67,14 +67,14 @@ describe("triageCurrentStep", () => {
       requestMovie: jest.fn().mockResolvedValue(undefined),
       requestTV: jest.fn().mockResolvedValue(undefined),
     }));
-    const { triageCurrentStep: triageWithMock } = await import("./triage");
+    const { triageCurrentStep: triageWithMock } = await import("./triage.js");
     await triageWithMock(
       ombiClient,
       senderAddress,
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    const request = await import("./request");
+    const request = await import("./request.js");
     expect(request.requestMovie).toHaveBeenCalled();
   });
 
@@ -88,14 +88,14 @@ describe("triageCurrentStep", () => {
       requestMovie: jest.fn().mockResolvedValue(undefined),
       requestTV: jest.fn().mockResolvedValue(undefined),
     }));
-    const { triageCurrentStep: triageWithMock } = await import("./triage");
+    const { triageCurrentStep: triageWithMock } = await import("./triage.js");
     await triageWithMock(
       ombiClient,
       senderAddress,
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    const request = await import("./request");
+    const request = await import("./request.js");
     expect(request.requestTV).toHaveBeenCalled();
   });
 
@@ -105,7 +105,7 @@ describe("triageCurrentStep", () => {
       getUserState: () => [undefined, null],
       UserSearchState,
     }));
-    const { triageCurrentStep: triageWithMock } = await import("./triage");
+    const { triageCurrentStep: triageWithMock } = await import("./triage.js");
     await triageWithMock(
       ombiClient,
       senderAddress,

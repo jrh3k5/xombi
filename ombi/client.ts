@@ -1,13 +1,13 @@
 import axios, { AxiosResponse } from "axios";
 import { config } from "dotenv";
-import { MovieSearchResult, TVSearchResult } from "./model";
+import { MovieSearchResult, TVSearchResult } from "./model.js";
 import {
   MovieAlreadyRequestedError,
   NoOmbiResponseError,
   NoRequestPermissions,
   ShowAlreadyRequestedError,
   UnresolvableAddressError,
-} from "./errors";
+} from "./errors.js";
 
 config();
 

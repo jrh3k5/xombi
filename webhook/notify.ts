@@ -1,5 +1,5 @@
 import { Client, Dm } from "@xmtp/node-sdk";
-import { getEthereumAddressesOfMember } from "../lib/conversation_member";
+import { getEthereumAddressesOfMember } from "../lib/conversation_member.js";
 
 /**
  * Service for sending XMTP notifications to users about their media requests.

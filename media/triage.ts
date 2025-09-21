@@ -1,9 +1,9 @@
-import { UserSearchState, getUserState } from "../state/user_state";
-import { requestMovie, requestTV } from "./request";
-import { searchMovies, searchTV } from "./search";
-import { OmbiClient } from "../ombi/client";
+import { UserSearchState, getUserState } from "../state/user_state.js";
+import { requestMovie, requestTV } from "./request.js";
+import { searchMovies, searchTV } from "./search.js";
+import { OmbiClient } from "../ombi/client.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
-import { RequestTracker } from "../webhook/server";
+import { RequestTracker } from "../webhook/server.js";
 
 /**
  * Triage and handle the current step in a user's workflow based on their message content and state.

@@ -1,4 +1,4 @@
-import { MemoryRequestTracker } from "./request_tracker";
+import { MemoryRequestTracker } from "./request_tracker.js";
 
 describe("MemoryRequestTracker", () => {
   let tracker: MemoryRequestTracker;

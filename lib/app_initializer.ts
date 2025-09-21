@@ -1,16 +1,16 @@
 import dotenv from "dotenv";
-import { newClient, type OmbiClient } from "../ombi/client";
-import { triageCurrentStep } from "../media/triage";
-import { getEthereumAddressesOfMember } from "./conversation_member";
+import { newClient, type OmbiClient } from "../ombi/client.js";
+import { triageCurrentStep } from "../media/triage.js";
+import { getEthereumAddressesOfMember } from "./conversation_member.js";
 import {
   XMTPClientFactory,
   XMTPInstallationLimitError,
   XMTPClientCreationError,
-} from "./xmtp_client_factory";
-import { WebhookInitializer } from "./webhook_initializer";
+} from "./xmtp_client_factory.js";
+import { WebhookInitializer } from "./webhook_initializer.js";
 import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
-import { RequestTracker } from "../webhook/server";
-import { UnresolvableAddressError } from "../ombi/errors";
+import { RequestTracker } from "../webhook/server.js";
+import { UnresolvableAddressError } from "../ombi/errors.js";
 
 const errorMessageUnresolvedUser =
   "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.";

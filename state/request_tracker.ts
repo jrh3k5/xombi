@@ -1,4 +1,4 @@
-import { RequestTracker } from "../webhook/server";
+import { RequestTracker } from "../webhook/server.js";
 
 /**
  * Internal structure representing a tracked media request.

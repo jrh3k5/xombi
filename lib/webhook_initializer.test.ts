@@ -1,31 +1,31 @@
-import { WebhookInitializer, WebhookConfig } from "./webhook_initializer";
+import { WebhookInitializer, WebhookConfig } from "./webhook_initializer.js";
 import { Client } from "@xmtp/node-sdk";
 
 // Mock dependencies
-jest.mock("../webhook/server", () => ({
+jest.mock("../webhook/server.js", () => ({
   WebhookServer: jest.fn().mockImplementation(() => ({
     setNotificationHandler: jest.fn(),
     start: jest.fn(),
   })),
 }));
 
-jest.mock("../state/request_tracker", () => ({
+jest.mock("../state/request_tracker.js", () => ({
   MemoryRequestTracker: jest.fn(),
 }));
 
-jest.mock("../webhook/notify", () => ({
+jest.mock("../webhook/notify.js", () => ({
   XMTPNotifier: jest.fn().mockImplementation(() => ({
     sendNotification: jest.fn(),
   })),
 }));
 
-jest.mock("../ombi/webhook", () => ({
+jest.mock("../ombi/webhook.js", () => ({
   WebhookManager: jest.fn().mockImplementation(() => ({
     registerWebhook: jest.fn(),
   })),
 }));
 
-jest.mock("./network", () => ({
+jest.mock("./network.js", () => ({
   buildWebhookURL: jest
     .fn()
     .mockReturnValue("http://192.168.1.100:3000/webhook"),
@@ -199,10 +199,10 @@ describe("WebhookInitializer", () => {
       };
 
       jest
-        .requireMock("../webhook/server")
+        .requireMock("../webhook/server.js")
         .WebhookServer.mockReturnValue(mockWebhookServer);
       jest
-        .requireMock("../ombi/webhook")
+        .requireMock("../ombi/webhook.js")
         .WebhookManager.mockReturnValue(mockWebhookManager);
 
       const result = await WebhookInitializer.initializeWebhookSystem(
@@ -242,10 +242,10 @@ describe("WebhookInitializer", () => {
       };
 
       jest
-        .requireMock("../webhook/server")
+        .requireMock("../webhook/server.js")
         .WebhookServer.mockReturnValue(mockWebhookServer);
       jest
-        .requireMock("../ombi/webhook")
+        .requireMock("../ombi/webhook.js")
         .WebhookManager.mockReturnValue(mockWebhookManager);
 
       await WebhookInitializer.initializeWebhookSystem(
@@ -278,10 +278,10 @@ describe("WebhookInitializer", () => {
       };
 
       jest
-        .requireMock("../webhook/server")
+        .requireMock("../webhook/server.js")
         .WebhookServer.mockReturnValue(mockWebhookServer);
       jest
-        .requireMock("../ombi/webhook")
+        .requireMock("../ombi/webhook.js")
         .WebhookManager.mockReturnValue(mockWebhookManager);
 
       await WebhookInitializer.initializeWebhookSystem(
@@ -312,10 +312,10 @@ describe("WebhookInitializer", () => {
       };
 
       jest
-        .requireMock("../webhook/server")
+        .requireMock("../webhook/server.js")
         .WebhookServer.mockReturnValue(mockWebhookServer);
       jest
-        .requireMock("../ombi/webhook")
+        .requireMock("../ombi/webhook.js")
         .WebhookManager.mockReturnValue(mockWebhookManager);
 
       await expect(

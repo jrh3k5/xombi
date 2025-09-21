@@ -1,10 +1,10 @@
-import { ListableResult } from "../ombi/model";
+import { ListableResult } from "../ombi/model.js";
 import {
   clearUserState,
   setUserState,
   UserSearchState,
-} from "../state/user_state";
-import { OmbiClient } from "../ombi/client";
+} from "../state/user_state.js";
+import { OmbiClient } from "../ombi/client.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 
 /**
