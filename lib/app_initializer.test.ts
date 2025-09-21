@@ -113,8 +113,12 @@ describe("AppInitializer", () => {
     it("should initialize successfully with webhooks disabled", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory.js");
-      const { WebhookInitializer } = jest.requireMock("./webhook_initializer.js");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
+      const { WebhookInitializer } = jest.requireMock(
+        "./webhook_initializer.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -152,7 +156,9 @@ describe("AppInitializer", () => {
     it("should handle XMTP installation limit error gracefully", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory.js");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -188,7 +194,9 @@ describe("AppInitializer", () => {
     it("should handle XMTP client creation error", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory.js");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
@@ -214,7 +222,9 @@ describe("AppInitializer", () => {
     it("should rethrow unknown errors", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock("./xmtp_client_factory.js");
+      const { XMTPClientFactory } = jest.requireMock(
+        "./xmtp_client_factory.js",
+      );
 
       XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
