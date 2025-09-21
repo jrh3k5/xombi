@@ -1,6 +1,6 @@
 {
   "name": "xombi",
-  "version": "2.2.3",
+  "version": "2.3.0-alpha.0",
   "description": "An XMTP bot used to handle requests for Ombi",
   "type": "module",
   "main": "dist/index.js",
