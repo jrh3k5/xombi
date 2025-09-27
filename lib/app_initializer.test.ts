@@ -1,6 +1,5 @@
 import { AppInitializer } from "./app_initializer.js";
 import { UnresolvableAddressError } from "../ombi/errors.js";
-// Imports removed as they're no longer needed with Agent SDK
 
 // Mock dependencies
 jest.mock("dotenv", () => ({
