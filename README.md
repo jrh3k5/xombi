@@ -153,7 +153,7 @@ This project provides a Docker setup that can be used to run the bot with its ow
 This requires manual setup of the Ombi instance first, so run this command first to start Ombi:
 
 ```
-docker compose -f docker-compose.local.yml up ombi -d
+docker compose -f docker-compose.dev.yml up ombi -d
 ```
 
 Once it's running, navigate to http://localhost:9753 to set up Ombi. As part of the initial setup, choose MySQL as the database and provide the following values:
@@ -179,7 +179,7 @@ USERNAME_<your wallet address>=<your username as it appears in Ombi>
 Then run:
 
 ```
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 This will start the bot on top of the Ombi instance already running. **Webhook notifications are enabled by default in local development mode** - the containers can communicate directly without exposing ports to the host.
