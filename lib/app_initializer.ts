@@ -8,9 +8,14 @@ import {
   XMTPClientCreationError,
 } from "./xmtp_client_factory.js";
 import { WebhookInitializer } from "./webhook_initializer.js";
-import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
+import { DecodedMessage, Dm } from "@xmtp/node-sdk";
+import { Agent, filter } from "@xmtp/agent-sdk";
 import { RequestTracker } from "../webhook/server.js";
 import { UnresolvableAddressError } from "../ombi/errors.js";
+import { convertEOAToSigner } from "./eoa.js";
+import { privateKeyToAccount } from "viem/accounts";
+import { mainnet, sepolia } from "viem/chains";
+import { toBytes } from "viem";
 
 const errorMessageUnresolvedUser =
   "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.";
@@ -68,11 +73,26 @@ export class AppInitializer {
 
     const ombiClient = newClient();
 
-    // Initialize XMTP client
-    let xmtpResult;
+    // Initialize XMTP Agent
+    let agent: Agent;
+    let agentAddress: string;
+    let environment: string;
     try {
       const xmtpConfig = XMTPClientFactory.parseEnvironmentConfig();
-      xmtpResult = await XMTPClientFactory.createClient(xmtpConfig);
+
+      // Create signer from config
+      const account = privateKeyToAccount(xmtpConfig.signerKey);
+      const chain = xmtpConfig.environment === "production" ? mainnet : sepolia;
+      const signer = convertEOAToSigner(account, chain);
+
+      // Create agent with config
+      agent = await Agent.create(signer, {
+        env: xmtpConfig.environment,
+        dbEncryptionKey: toBytes(xmtpConfig.encryptionKey),
+      });
+
+      agentAddress = account.address;
+      environment = xmtpConfig.environment;
     } catch (error) {
       if (error instanceof XMTPInstallationLimitError) {
         console.error("\n❌ XMTP Installation Limit Error");
@@ -88,84 +108,77 @@ export class AppInitializer {
         console.error("XMTP client creation failed:", error.message);
         throw error;
       } else {
+        console.error("Agent creation failed:", error);
         throw error;
       }
     }
 
     console.log(
-      `Agent initialized on ${xmtpResult.account.address}\nSend a message on http://xmtp.chat/dm/${xmtpResult.account.address}?env=${xmtpResult.environment}`,
+      `Agent initialized on ${agentAddress}\nSend a message on http://xmtp.chat/dm/${agentAddress}?env=${environment}`,
     );
 
     // Initialize webhook system
     const webhookConfig = WebhookInitializer.parseEnvironmentConfig();
     const webhookComponents = await WebhookInitializer.initializeWebhookSystem(
       webhookConfig,
-      xmtpResult.client,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      agent.client as any,
     );
 
-    // Start message processing loop
-    await this.startMessageProcessingLoop(
-      xmtpResult.client,
+    // Set up message handler
+    this.setupMessageHandler(
+      agent,
       appConfig.allowedAddresses,
       ombiClient,
       webhookComponents?.requestTracker,
     );
+
+    // Start the agent
+    await agent.start();
   }
 
   /**
-   * Starts the loop to listen for messages to the bot.
-   * @param xmtpClient A Client used to interact with users over XMTP.
+   * Sets up the Agent SDK text message handler.
+   * @param agent The Agent instance to configure.
    * @param allowedAddresses A list of Ethereum addresses that are authorized to communicate with this bot.
    * @param ombiClient A client used to interact with Ombi.
    * @param requestTracker A tracker used to know who to contact when a particular request has completed.
    */
-  static async startMessageProcessingLoop(
-    xmtpClient: Client,
+  static setupMessageHandler(
+    agent: Agent,
     allowedAddresses: string[],
     ombiClient: OmbiClient,
     requestTracker?: RequestTracker,
-  ): Promise<void> {
-    for await (const message of await xmtpClient.conversations.streamAllMessages()) {
-      let conversation: Conversation | undefined;
+  ): void {
+    agent.on("text", async (ctx) => {
       try {
-        if (
-          message?.senderInboxId.toLowerCase() ===
-            xmtpClient.inboxId.toLowerCase() ||
-          message?.contentType?.typeId !== "text" ||
-          typeof message.content !== "string"
-        ) {
-          continue;
+        // Skip messages from self
+        if (filter.fromSelf(ctx.message, ctx.client)) {
+          return;
         }
 
-        const senderInboxId = message.senderInboxId;
-        conversation = xmtpClient.conversations.getDmByInboxId(senderInboxId);
-        if (!conversation) {
-          continue;
+        // Ensure message has defined content
+        if (!filter.hasContent(ctx.message) || !filter.isText(ctx.message)) {
+          return;
         }
 
-        const conversationMembers = await conversation.members();
+        const conversationMembers = await ctx.conversation.members();
         // Remove the agent's address from the members - make sure everyone else is authorized to talk to the agent
-        for (let i = conversationMembers.length - 1; i >= 0; i--) {
-          if (conversationMembers[i].inboxId == xmtpClient.inboxId) {
-            conversationMembers.splice(i, 1);
-          } else if (conversationMembers[i].inboxId !== senderInboxId) {
-            conversationMembers.splice(i, 1);
-          }
-        }
+        const filteredMembers = conversationMembers.filter(
+          (member) => member.inboxId !== ctx.client.inboxId && member.inboxId === ctx.message.senderInboxId
+        );
 
         // Not sure how this can happen, but, just in case
-        if (conversationMembers.length == 0) {
-          continue;
+        if (filteredMembers.length === 0) {
+          return;
         }
 
         // Are any of the members not allowed?
         let allowedCount: number = 0;
         const allEthereumAddresses = new Set<string>();
-        for (let i = conversationMembers.length - 1; i >= 0; i--) {
-          const senderAddresses = getEthereumAddressesOfMember(
-            conversationMembers[i],
-          );
-          if (senderAddresses.length == 0) {
+        for (const member of filteredMembers) {
+          const senderAddresses = getEthereumAddressesOfMember(member);
+          if (senderAddresses.length === 0) {
             // Unexpected identifier; this only works with Ethereum addresses, presently
             break;
           }
@@ -182,15 +195,11 @@ export class AppInitializer {
           });
         }
 
-        if (allowedCount < conversationMembers.length) {
-          await conversation.send(
+        if (allowedCount < filteredMembers.length) {
+          await ctx.conversation.send(
             "Sorry, I'm not allowed to talk to strangers.",
           );
-          continue;
-        }
-
-        if (typeof message.content !== "string") {
-          continue;
+          return;
         }
 
         const triagePromises = Array.from(allEthereumAddresses).map(
@@ -198,8 +207,8 @@ export class AppInitializer {
             return triageCurrentStep(
               ombiClient,
               senderAddress as `0x${string}`,
-              message as DecodedMessage<string>,
-              conversation! as Dm,
+              ctx.message as DecodedMessage<string>,
+              ctx.conversation as Dm,
               requestTracker,
             );
           },
@@ -210,13 +219,18 @@ export class AppInitializer {
         console.log(err);
 
         if (err instanceof UnresolvableAddressError) {
-          await conversation?.send(errorMessageUnresolvedUser);
+          await ctx.conversation.send(errorMessageUnresolvedUser);
         } else {
-          await conversation?.send(
+          await ctx.conversation.send(
             "Sorry, I encountered an unexpected error while processing your message.",
           );
         }
       }
-    }
+    });
+
+    // Handle agent errors
+    agent.on("unhandledError", (error) => {
+      console.error("Agent error:", error);
+    });
   }
 }

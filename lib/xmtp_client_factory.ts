@@ -1,8 +1,8 @@
 import { Chain, Hex, toBytes } from "viem";
-import { Client, type ClientOptions, XmtpEnv } from "@xmtp/node-sdk";
+import { Client } from "@xmtp/node-sdk";
+import { type ClientOptions, XmtpEnv, Signer } from "@xmtp/agent-sdk";
 import { mainnet, sepolia } from "viem/chains";
 import { convertEOAToSigner } from "./eoa.js";
-import { Signer } from "@xmtp/node-sdk";
 import { privateKeyToAccount } from "viem/accounts";
 
 /**
