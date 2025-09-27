@@ -97,13 +97,10 @@ describe("AppInitializer", () => {
   });
 
   describe("initialize", () => {
-
     it("should initialize successfully with webhooks disabled", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { parseEnvironmentConfig } = jest.requireMock(
-        "./xmtp_config.js",
-      );
+      const { parseEnvironmentConfig } = jest.requireMock("./xmtp_config.js");
       const { WebhookInitializer } = jest.requireMock(
         "./webhook_initializer.js",
       );
@@ -141,13 +138,10 @@ describe("AppInitializer", () => {
       );
     });
 
-
     it("should rethrow unknown errors", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { parseEnvironmentConfig } = jest.requireMock(
-        "./xmtp_config.js",
-      );
+      const { parseEnvironmentConfig } = jest.requireMock("./xmtp_config.js");
 
       parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",

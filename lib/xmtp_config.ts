@@ -24,9 +24,7 @@ export interface XMTPConfig {
  */
 function validateConfig(config: XMTPConfig): void {
   if (!config.signerKey) {
-    throw new Error(
-      "invalid Xombi signer key; must be of type `0x${string}`",
-    );
+    throw new Error("invalid Xombi signer key; must be of type `0x${string}`");
   }
   if (!config.encryptionKey) {
     throw new Error(

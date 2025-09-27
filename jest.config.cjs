@@ -6,9 +6,7 @@ module.exports = {
   moduleFileExtensions: ["ts", "js", "json", "node"],
   testMatch: ["**/*.test.ts"],
   extensionsToTreatAsEsm: [".ts"],
-  transformIgnorePatterns: [
-    "node_modules/(?!(@xmtp/agent-sdk)/)"
-  ],
+  transformIgnorePatterns: ["node_modules/(?!(@xmtp/agent-sdk)/)"],
   transform: {
     "^.+\\.ts$": [
       "ts-jest",

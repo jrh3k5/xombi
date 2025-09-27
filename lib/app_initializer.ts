@@ -146,7 +146,9 @@ export class AppInitializer {
         const conversationMembers = await ctx.conversation.members();
         // Remove the agent's address from the members - make sure everyone else is authorized to talk to the agent
         const filteredMembers = conversationMembers.filter(
-          (member) => member.inboxId !== ctx.client.inboxId && member.inboxId === ctx.message.senderInboxId
+          (member) =>
+            member.inboxId !== ctx.client.inboxId &&
+            member.inboxId === ctx.message.senderInboxId,
         );
 
         // Not sure how this can happen, but, just in case
