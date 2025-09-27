@@ -30,7 +30,7 @@ jest.mock("../ombi/client.js", () => ({
   newClient: jest.fn().mockReturnValue({ id: "mock-ombi-client" }),
 }));
 
-jest.mock("./xmtp_client_factory.js", () => ({
+jest.mock("./xmtp_config.js", () => ({
   parseEnvironmentConfig: jest.fn(),
 }));
 
@@ -102,7 +102,7 @@ describe("AppInitializer", () => {
       process.env.ALLOW_LIST = "0x1234";
 
       const { parseEnvironmentConfig } = jest.requireMock(
-        "./xmtp_client_factory.js",
+        "./xmtp_config.js",
       );
       const { WebhookInitializer } = jest.requireMock(
         "./webhook_initializer.js",
@@ -146,7 +146,7 @@ describe("AppInitializer", () => {
       process.env.ALLOW_LIST = "0x1234";
 
       const { parseEnvironmentConfig } = jest.requireMock(
-        "./xmtp_client_factory.js",
+        "./xmtp_config.js",
       );
 
       parseEnvironmentConfig.mockReturnValue({

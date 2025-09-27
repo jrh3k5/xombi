@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { newClient, type OmbiClient } from "../ombi/client.js";
 import { triageCurrentStep } from "../media/triage.js";
 import { getEthereumAddressesOfMember } from "./conversation_member.js";
-import { parseEnvironmentConfig } from "./xmtp_client_factory.js";
+import { parseEnvironmentConfig } from "./xmtp_config.js";
 import { WebhookInitializer } from "./webhook_initializer.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { Agent, filter } from "@xmtp/agent-sdk";

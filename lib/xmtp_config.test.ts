@@ -1,4 +1,4 @@
-import { parseEnvironmentConfig } from "./xmtp_client_factory.js";
+import { parseEnvironmentConfig } from "./xmtp_config.js";
 
 describe("parseEnvironmentConfig", () => {
   beforeEach(() => {
