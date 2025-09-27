@@ -16,7 +16,6 @@ services:
       OMBI_XOMBI_WEBHOOK_BASE_URL: "http://xombi:3000"
       OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16,127.0.0.1,::1,::ffff:127.0.0.1"
       XMTP_ENV: "dev"
-      XMTP_REVOKE_ALL_OTHER_INSTALLATIONS: "true"
     env_file:
       - .env
     networks:

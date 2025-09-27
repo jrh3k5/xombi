@@ -16,12 +16,6 @@ export interface XMTPConfig {
    * The XMTP environment to which this agent should connect.
    */
   environment: XmtpEnv;
-  /**
-   * true if installations should be auto-revoked if the max number of
-   * installations has been met or exceeded; anything else will not auto-revoke
-   * installations in such cases.
-   */
-  autoRevokeInstallations?: boolean;
 }
 
 /**
@@ -58,14 +52,10 @@ export function parseEnvironmentConfig(): XMTPConfig {
     environment = envEnv as XmtpEnv;
   }
 
-  const autoRevokeInstallations =
-    process.env.XMTP_REVOKE_ALL_OTHER_INSTALLATIONS?.toLowerCase() === "true";
-
   const config: XMTPConfig = {
     signerKey,
     encryptionKey,
     environment,
-    autoRevokeInstallations,
   };
 
   validateConfig(config);
