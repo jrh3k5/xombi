@@ -1,8 +1,4 @@
 import { AppInitializer } from "./app_initializer.js";
-import {
-  XMTPInstallationLimitError,
-  XMTPClientCreationError,
-} from "./xmtp_client_factory.js";
 import { UnresolvableAddressError } from "../ombi/errors.js";
 // Imports removed as they're no longer needed with Agent SDK
 
@@ -35,28 +31,7 @@ jest.mock("../ombi/client.js", () => ({
 }));
 
 jest.mock("./xmtp_client_factory.js", () => ({
-  XMTPClientFactory: {
-    parseEnvironmentConfig: jest.fn(),
-    createClient: jest.fn(),
-  },
-  XMTPInstallationLimitError: class extends Error {
-    constructor(
-      message: string,
-      public autoRevokeAvailable: boolean,
-    ) {
-      super(message);
-      this.name = "XMTPInstallationLimitError";
-    }
-    getResolutionSteps() {
-      return ["step1", "step2", "step3"];
-    }
-  },
-  XMTPClientCreationError: class extends Error {
-    constructor(message: string) {
-      super(message);
-      this.name = "XMTPClientCreationError";
-    }
-  },
+  parseEnvironmentConfig: jest.fn(),
 }));
 
 jest.mock("./webhook_initializer.js", () => ({
@@ -126,14 +101,14 @@ describe("AppInitializer", () => {
     it("should initialize successfully with webhooks disabled", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock(
+      const { parseEnvironmentConfig } = jest.requireMock(
         "./xmtp_client_factory.js",
       );
       const { WebhookInitializer } = jest.requireMock(
         "./webhook_initializer.js",
       );
 
-      XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
+      parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
         encryptionKey: "0xencryption",
         environment: "dev",
@@ -166,84 +141,15 @@ describe("AppInitializer", () => {
       );
     });
 
-    it("should handle XMTP installation limit error gracefully", async () => {
-      process.env.ALLOW_LIST = "0x1234";
-
-      const { XMTPClientFactory } = jest.requireMock(
-        "./xmtp_client_factory.js",
-      );
-
-      XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
-        signerKey: "0xsigner",
-        encryptionKey: "0xencryption",
-        environment: "dev",
-      });
-
-      const installationError = new XMTPInstallationLimitError(
-        "Installation limit reached",
-        true,
-      );
-      // Mock Agent.create to reject with the installation error
-      const { Agent } = jest.requireMock("@xmtp/agent-sdk");
-      Agent.create.mockRejectedValue(installationError);
-
-      await expect(AppInitializer.initialize()).rejects.toThrow(
-        "process.exit called",
-      );
-
-      expect(console.error).toHaveBeenCalledWith(
-        "\n❌ XMTP Installation Limit Error",
-      );
-      expect(console.error).toHaveBeenCalledWith(
-        "Your XMTP identity has reached the maximum number of installations.",
-      );
-      expect(console.error).toHaveBeenCalledWith(
-        "\nTo resolve this issue, you can:",
-      );
-      expect(console.error).toHaveBeenCalledWith("step1");
-      expect(console.error).toHaveBeenCalledWith("step2");
-      expect(console.error).toHaveBeenCalledWith("step3");
-      expect(process.exit).toHaveBeenCalledWith(1);
-    });
-
-    it("should handle XMTP client creation error", async () => {
-      process.env.ALLOW_LIST = "0x1234";
-
-      const { XMTPClientFactory } = jest.requireMock(
-        "./xmtp_client_factory.js",
-      );
-
-      XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
-        signerKey: "0xsigner",
-        encryptionKey: "0xencryption",
-        environment: "dev",
-      });
-
-      const creationError = new XMTPClientCreationError(
-        "Client creation failed",
-      );
-      // Mock Agent.create to reject with the creation error
-      const { Agent } = jest.requireMock("@xmtp/agent-sdk");
-      Agent.create.mockRejectedValue(creationError);
-
-      await expect(AppInitializer.initialize()).rejects.toThrow(
-        XMTPClientCreationError,
-      );
-
-      expect(console.error).toHaveBeenCalledWith(
-        "XMTP client creation failed:",
-        "Client creation failed",
-      );
-    });
 
     it("should rethrow unknown errors", async () => {
       process.env.ALLOW_LIST = "0x1234";
 
-      const { XMTPClientFactory } = jest.requireMock(
+      const { parseEnvironmentConfig } = jest.requireMock(
         "./xmtp_client_factory.js",
       );
 
-      XMTPClientFactory.parseEnvironmentConfig.mockReturnValue({
+      parseEnvironmentConfig.mockReturnValue({
         signerKey: "0xsigner",
         encryptionKey: "0xencryption",
         environment: "dev",

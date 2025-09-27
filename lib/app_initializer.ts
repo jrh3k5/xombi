@@ -2,11 +2,7 @@ import dotenv from "dotenv";
 import { newClient, type OmbiClient } from "../ombi/client.js";
 import { triageCurrentStep } from "../media/triage.js";
 import { getEthereumAddressesOfMember } from "./conversation_member.js";
-import {
-  XMTPClientFactory,
-  XMTPInstallationLimitError,
-  XMTPClientCreationError,
-} from "./xmtp_client_factory.js";
+import { parseEnvironmentConfig } from "./xmtp_client_factory.js";
 import { WebhookInitializer } from "./webhook_initializer.js";
 import { DecodedMessage, Dm } from "@xmtp/node-sdk";
 import { Agent, filter } from "@xmtp/agent-sdk";
@@ -78,7 +74,7 @@ export class AppInitializer {
     let agentAddress: string;
     let environment: string;
     try {
-      const xmtpConfig = XMTPClientFactory.parseEnvironmentConfig();
+      const xmtpConfig = parseEnvironmentConfig();
 
       // Create signer from config
       const account = privateKeyToAccount(xmtpConfig.signerKey);
@@ -94,23 +90,8 @@ export class AppInitializer {
       agentAddress = account.address;
       environment = xmtpConfig.environment;
     } catch (error) {
-      if (error instanceof XMTPInstallationLimitError) {
-        console.error("\n❌ XMTP Installation Limit Error");
-        console.error(
-          "Your XMTP identity has reached the maximum number of installations.",
-        );
-        console.error("\nTo resolve this issue, you can:");
-        error.getResolutionSteps().forEach((step) => console.error(step));
-        console.error("\nFor more information, see: https://docs.xmtp.org/");
-        console.error(`\nOriginal error: ${error.message}`);
-        process.exit(1);
-      } else if (error instanceof XMTPClientCreationError) {
-        console.error("XMTP client creation failed:", error.message);
-        throw error;
-      } else {
-        console.error("Agent creation failed:", error);
-        throw error;
-      }
+      console.error("Agent creation failed:", error);
+      throw error;
     }
 
     console.log(
