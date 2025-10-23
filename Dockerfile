@@ -5,6 +5,6 @@ RUN chmod 777 -R /home/node/app
 
 COPY ./ ./
 
-RUN npm install
+RUN npm ci
 
 CMD ["npx", "tsx", "index.ts"]
