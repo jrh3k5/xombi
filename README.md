@@ -75,8 +75,7 @@ ADMIN_ADDRESSES=<comma-separated list of admin addresses>
 - `ADMIN_ADDRESSES` specifies which Ethereum addresses should receive a notification when the bot starts up
 - Admin addresses should be lower-cased, just like `ALLOW_LIST` entries
 - When the bot starts, it will send "🤖 xombi is now online and ready!" to each admin address
-- Notifications are only sent to existing 1-on-1 conversations between the bot and the admin address
-- If no existing conversation exists, the notification is skipped (the bot will not create new conversations)
+- Notifications are only sent to 1-on-1 conversations between the bot and the admin address
 
 Example:
 
