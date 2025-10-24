@@ -242,7 +242,14 @@ describe("AppInitializer", () => {
   });
 
   describe("sendAdminAnnouncements", () => {
-    let mockXmtpClient: Partial<Client>;
+    let mockXmtpClient: {
+      inboxId: string;
+      conversations: {
+        list: jest.Mock;
+        newDm: jest.Mock;
+      };
+      getInboxIdByIdentifier: jest.Mock;
+    };
     let mockConversation: {
       send: jest.Mock;
       members: jest.Mock;
@@ -267,7 +274,10 @@ describe("AppInitializer", () => {
     });
 
     it("should return early when no admin addresses provided", async () => {
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, []);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [],
+      );
 
       expect(mockXmtpClient.conversations.list).not.toHaveBeenCalled();
       expect(console.log).not.toHaveBeenCalled();
@@ -286,9 +296,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
       getEthereumAddressesOfMember.mockReturnValue([adminAddress]);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(mockConversation.send).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
@@ -314,9 +325,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
       mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringContaining("has 3 members"),
@@ -331,9 +343,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
       mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(mockXmtpClient.getInboxIdByIdentifier).toHaveBeenCalledWith({
         identifier: adminAddress,
@@ -359,9 +372,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.conversations.list.mockResolvedValue([]);
       mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue(null);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(console.error).toHaveBeenCalledWith(
         `Could not find inbox ID for admin ${adminAddress}. The address may not be registered on XMTP.`,
@@ -378,9 +392,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
       mockXmtpClient.conversations.newDm.mockRejectedValue(error);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(console.error).toHaveBeenCalledWith(
         `Failed to create conversation with admin ${adminAddress}:`,
@@ -404,9 +419,10 @@ describe("AppInitializer", () => {
       mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
       getEthereumAddressesOfMember.mockReturnValue([adminAddress]);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(console.error).toHaveBeenCalledWith(
         `Failed to send startup announcement to admin ${adminAddress}:`,
@@ -450,10 +466,10 @@ describe("AppInitializer", () => {
         .mockReturnValueOnce([adminAddress1]) // adminAddress2 iteration, mockConversation1 adminMember1 (doesn't match adminAddress2)
         .mockReturnValueOnce([adminAddress2]); // adminAddress2 iteration, mockConversation2 adminMember2 (matches)
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress1,
-        adminAddress2,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress1, adminAddress2],
+      );
 
       expect(mockConversation1.send).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
@@ -492,9 +508,10 @@ describe("AppInitializer", () => {
       // getEthereumAddressesOfMember is only called for non-bot members (adminMember)
       getEthereumAddressesOfMember.mockReturnValueOnce([adminAddress]);
 
-      await AppInitializer.sendAdminAnnouncements(mockXmtpClient, [
-        adminAddress,
-      ]);
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
 
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringContaining("lacks a 'send' member"),
