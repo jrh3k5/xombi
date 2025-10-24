@@ -242,9 +242,11 @@ describe("AppInitializer", () => {
   });
 
   describe("sendAdminAnnouncements", () => {
-    let mockXmtpClient: any;
-    let mockConversation: any;
-    let mockMember: any;
+    let mockXmtpClient: Partial<Client>;
+    let mockConversation: {
+      send: jest.Mock;
+      members: jest.Mock;
+    };
 
     beforeEach(() => {
       jest.spyOn(console, "debug").mockImplementation();
@@ -252,10 +254,6 @@ describe("AppInitializer", () => {
       mockConversation = {
         send: jest.fn().mockResolvedValue(undefined),
         members: jest.fn(),
-      };
-
-      mockMember = {
-        inboxId: "member-inbox-id",
       };
 
       mockXmtpClient = {
