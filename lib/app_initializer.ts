@@ -90,7 +90,9 @@ export class AppInitializer {
 
     // Look for existing 1-on-1 conversation with each admin
     const conversations = await xmtpClient.conversations.list();
-    console.debug(`Evaluating ${conversations.length} existing conversations to send startup announcements to ${adminAddresses.length} admin(s)`);
+    console.debug(
+      `Evaluating ${conversations.length} existing conversations to send startup announcements to ${adminAddresses.length} admin(s)`,
+    );
 
     for (const adminAddress of adminAddresses) {
       try {
@@ -101,7 +103,9 @@ export class AppInitializer {
 
           // Only send to conversations with exactly 2 members (bot + admin)
           if (members.length !== 2) {
-            console.debug(`Conversation with admin address ${adminAddress} has ${members.length} members; will not use for startup announcement`);
+            console.debug(
+              `Conversation with admin address ${adminAddress} has ${members.length} members; will not use for startup announcement`,
+            );
 
             continue;
           }
@@ -131,7 +135,9 @@ export class AppInitializer {
 
               break;
             } else {
-              console.debug(`Identified a direct conversation with admin address ${adminAddress} lacks a 'send' member; it will not be used for the startup announcement`);
+              console.debug(
+                `Identified a direct conversation with admin address ${adminAddress} lacks a 'send' member; it will not be used for the startup announcement`,
+              );
             }
           }
         }
