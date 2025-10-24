@@ -241,6 +241,285 @@ describe("AppInitializer", () => {
     });
   });
 
+  describe("sendAdminAnnouncements", () => {
+    let mockXmtpClient: {
+      inboxId: string;
+      conversations: {
+        list: jest.Mock;
+        newDm: jest.Mock;
+      };
+      getInboxIdByIdentifier: jest.Mock;
+    };
+    let mockConversation: {
+      send: jest.Mock;
+      members: jest.Mock;
+    };
+
+    beforeEach(() => {
+      jest.spyOn(console, "debug").mockImplementation();
+
+      mockConversation = {
+        send: jest.fn().mockResolvedValue(undefined),
+        members: jest.fn(),
+      };
+
+      mockXmtpClient = {
+        inboxId: "bot-inbox-id",
+        conversations: {
+          list: jest.fn().mockResolvedValue([]),
+          newDm: jest.fn(),
+        },
+        getInboxIdByIdentifier: jest.fn(),
+      };
+    });
+
+    it("should return early when no admin addresses provided", async () => {
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [],
+      );
+
+      expect(mockXmtpClient.conversations.list).not.toHaveBeenCalled();
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it("should send announcement to existing 1-on-1 conversation", async () => {
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member.js",
+      );
+
+      const adminAddress = "0xadmin123";
+      const botMember = { inboxId: "bot-inbox-id" };
+      const adminMember = { inboxId: "admin-inbox-id" };
+
+      mockConversation.members.mockResolvedValue([botMember, adminMember]);
+      mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
+      getEthereumAddressesOfMember.mockReturnValue([adminAddress]);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(mockConversation.send).toHaveBeenCalledWith(
+        "🤖 xombi is now online and ready!",
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        `Startup announcement sent to admin: ${adminAddress}`,
+      );
+      expect(mockXmtpClient.conversations.newDm).not.toHaveBeenCalled();
+    });
+
+    it("should skip conversations with more than 2 members", async () => {
+      const adminAddress = "0xadmin123";
+      const botMember = { inboxId: "bot-inbox-id" };
+      const adminMember = { inboxId: "admin-inbox-id" };
+      const extraMember = { inboxId: "extra-inbox-id" };
+
+      mockConversation.members.mockResolvedValue([
+        botMember,
+        adminMember,
+        extraMember,
+      ]);
+      mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
+      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(console.debug).toHaveBeenCalledWith(
+        expect.stringContaining("has 3 members"),
+      );
+      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalled();
+    });
+
+    it("should create new conversation when none exists", async () => {
+      const adminAddress = "0xadmin123";
+
+      mockXmtpClient.conversations.list.mockResolvedValue([]);
+      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(mockXmtpClient.getInboxIdByIdentifier).toHaveBeenCalledWith({
+        identifier: adminAddress,
+        identifierKind: expect.anything(),
+      });
+      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalledWith(
+        "admin-inbox-id",
+      );
+      expect(mockConversation.send).toHaveBeenCalledWith(
+        "🤖 xombi is now online and ready!",
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        `New conversation created with admin: ${adminAddress}`,
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        `Startup announcement sent to admin: ${adminAddress}`,
+      );
+    });
+
+    it("should handle inbox ID not found", async () => {
+      const adminAddress = "0xadmin123";
+
+      mockXmtpClient.conversations.list.mockResolvedValue([]);
+      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue(null);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(console.error).toHaveBeenCalledWith(
+        `Could not find inbox ID for admin ${adminAddress}. The address may not be registered on XMTP.`,
+      );
+      expect(mockXmtpClient.conversations.newDm).not.toHaveBeenCalled();
+      expect(mockConversation.send).not.toHaveBeenCalled();
+    });
+
+    it("should handle error when creating new conversation", async () => {
+      const adminAddress = "0xadmin123";
+      const error = new Error("Failed to create DM");
+
+      mockXmtpClient.conversations.list.mockResolvedValue([]);
+      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.newDm.mockRejectedValue(error);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(console.error).toHaveBeenCalledWith(
+        `Failed to create conversation with admin ${adminAddress}:`,
+        error,
+      );
+      expect(mockConversation.send).not.toHaveBeenCalled();
+    });
+
+    it("should handle error when sending message", async () => {
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member.js",
+      );
+
+      const adminAddress = "0xadmin123";
+      const error = new Error("Failed to send message");
+      const botMember = { inboxId: "bot-inbox-id" };
+      const adminMember = { inboxId: "admin-inbox-id" };
+
+      mockConversation.members.mockResolvedValue([botMember, adminMember]);
+      mockConversation.send.mockRejectedValue(error);
+      mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
+      getEthereumAddressesOfMember.mockReturnValue([adminAddress]);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(console.error).toHaveBeenCalledWith(
+        `Failed to send startup announcement to admin ${adminAddress}:`,
+        error,
+      );
+    });
+
+    it("should process multiple admin addresses", async () => {
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member.js",
+      );
+
+      const adminAddress1 = "0xadmin123";
+      const adminAddress2 = "0xadmin456";
+
+      const botMember = { inboxId: "bot-inbox-id" };
+      const adminMember1 = { inboxId: "admin-inbox-id-1" };
+      const adminMember2 = { inboxId: "admin-inbox-id-2" };
+
+      const mockConversation1 = {
+        send: jest.fn().mockResolvedValue(undefined),
+        members: jest.fn().mockResolvedValue([botMember, adminMember1]),
+      };
+
+      const mockConversation2 = {
+        send: jest.fn().mockResolvedValue(undefined),
+        members: jest.fn().mockResolvedValue([botMember, adminMember2]),
+      };
+
+      mockXmtpClient.conversations.list.mockResolvedValue([
+        mockConversation1,
+        mockConversation2,
+      ]);
+
+      // Mock returns for each admin address search
+      // Note: getEthereumAddressesOfMember is only called for non-bot members
+      // For adminAddress1: check adminMember1 (match)
+      // For adminAddress2: check adminMember1 (no match), check adminMember2 (match)
+      getEthereumAddressesOfMember
+        .mockReturnValueOnce([adminAddress1]) // adminAddress1 iteration, adminMember1
+        .mockReturnValueOnce([adminAddress1]) // adminAddress2 iteration, mockConversation1 adminMember1 (doesn't match adminAddress2)
+        .mockReturnValueOnce([adminAddress2]); // adminAddress2 iteration, mockConversation2 adminMember2 (matches)
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress1, adminAddress2],
+      );
+
+      expect(mockConversation1.send).toHaveBeenCalledWith(
+        "🤖 xombi is now online and ready!",
+      );
+      expect(mockConversation2.send).toHaveBeenCalledWith(
+        "🤖 xombi is now online and ready!",
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        `Startup announcement sent to admin: ${adminAddress1}`,
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        `Startup announcement sent to admin: ${adminAddress2}`,
+      );
+    });
+
+    it("should skip conversation without send method", async () => {
+      const { getEthereumAddressesOfMember } = jest.requireMock(
+        "./conversation_member.js",
+      );
+
+      const adminAddress = "0xadmin123";
+      const botMember = { inboxId: "bot-inbox-id" };
+      const adminMember = { inboxId: "admin-inbox-id" };
+
+      const conversationWithoutSend = {
+        members: jest.fn().mockResolvedValue([botMember, adminMember]),
+        // No send method
+      };
+
+      mockXmtpClient.conversations.list.mockResolvedValue([
+        conversationWithoutSend,
+      ]);
+      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+
+      // getEthereumAddressesOfMember is only called for non-bot members (adminMember)
+      getEthereumAddressesOfMember.mockReturnValueOnce([adminAddress]);
+
+      await AppInitializer.sendAdminAnnouncements(
+        mockXmtpClient as unknown as Client,
+        [adminAddress],
+      );
+
+      expect(console.debug).toHaveBeenCalledWith(
+        expect.stringContaining("lacks a 'send' member"),
+      );
+      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalled();
+    });
+  });
+
   describe("startMessageProcessingLoop", () => {
     const mockXmtpClient = {
       inboxId: "agent-inbox-id",

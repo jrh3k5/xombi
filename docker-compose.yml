@@ -7,6 +7,9 @@ services:
       - ombi
     user: "node"
     working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
+      - /home/node/app/node_modules
     environment:
       DEBUG_OMBI_SEARCH: "true"
       DEBUG_OMBI_WEBHOOK: "true"
