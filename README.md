@@ -64,6 +64,26 @@ XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true
 - `DEBUG_OMBI_WEBHOOK=true` will enable debug logging of webhook requests, including headers (with tokens censored) and request body.
 - `XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true` will automatically revoke ALL other XMTP installations if the limit is reached. **Use with caution** as this will disconnect all other devices/applications using this XMTP identity.
 
+#### Admin Notifications (Optional)
+
+You can configure admin addresses to receive startup notifications when the bot comes online:
+
+```
+ADMIN_ADDRESSES=<comma-separated list of admin addresses>
+```
+
+- `ADMIN_ADDRESSES` specifies which Ethereum addresses should receive a notification when the bot starts up
+- Admin addresses should be lower-cased, just like `ALLOW_LIST` entries
+- When the bot starts, it will send "🤖 xombi is now online and ready!" to each admin address
+- Notifications are only sent to existing 1-on-1 conversations between the bot and the admin address
+- If no existing conversation exists, the notification is skipped (the bot will not create new conversations)
+
+Example:
+
+```
+ADMIN_ADDRESSES=0x742d35cc6634c0532925a3b844bc9e7595f0beda,0x1a2b3c4d5e6f7890abcdef1234567890abcdef12
+```
+
 #### Webhook Notifications (Optional)
 
 The bot supports optional webhook notifications from Ombi to notify users when their requested content becomes available. **Webhook notifications are disabled by default.**

@@ -23,6 +23,10 @@ export interface AppConfig {
    * The Ethereum addresses of accounts that are allowed to communicate with the bot.
    */
   allowedAddresses: string[];
+  /**
+   * The Ethereum addresses of accounts that are treated as administrators.
+   */
+  adminAddresses: string[];
 }
 
 /**
@@ -50,7 +54,107 @@ export class AppInitializer {
         .map((address) => address.toLowerCase());
     }
 
-    return { allowedAddresses };
+    let adminAddresses: string[] = [];
+    const envAdminAddresses = process.env.ADMIN_ADDRESSES;
+    if (envAdminAddresses) {
+      adminAddresses = envAdminAddresses
+        .split(",")
+        .map((address) => address.trim())
+        .map((address) => address.toLowerCase());
+    }
+
+    return { allowedAddresses, adminAddresses };
+  }
+
+  /**
+   * Sends a startup announcement to admin addresses.
+   * @param xmtpClient The XMTP client to use for sending messages
+   * @param adminAddresses List of admin Ethereum addresses to notify
+   */
+  static async sendAdminAnnouncements(
+    xmtpClient: Client,
+    adminAddresses: string[],
+  ): Promise<void> {
+    if (adminAddresses.length === 0) {
+      return;
+    }
+
+    console.log("Sending startup announcements to admin addresses...");
+
+    // Look for existing 1-on-1 conversation with each admin
+    const conversations = await xmtpClient.conversations.list();
+    console.debug(`Evaluating ${conversations.length} existing conversations to send startup announcements to ${adminAddresses.length} admin(s)`);
+
+    for (const adminAddress of adminAddresses) {
+      try {
+        let conversation: Dm | undefined;
+
+        for (const conv of conversations) {
+          const members = await conv.members();
+
+          // Only send to conversations with exactly 2 members (bot + admin)
+          if (members.length !== 2) {
+            console.debug(`Conversation with admin address ${adminAddress} has ${members.length} members; will not use for startup announcement`);
+
+            continue;
+          }
+
+          let hasAdmin = false;
+          let hasBot = false;
+
+          for (const member of members) {
+            if (member.inboxId === xmtpClient.inboxId) {
+              hasBot = true;
+            } else {
+              const addresses = getEthereumAddressesOfMember(member);
+              if (
+                addresses.some(
+                  (addr) => addr.toLowerCase() === adminAddress.toLowerCase(),
+                )
+              ) {
+                hasAdmin = true;
+              }
+            }
+          }
+
+          // Only use this conversation if it's a 1-on-1 DM with the admin
+          if (hasAdmin && hasBot) {
+            if ("send" in conv) {
+              conversation = conv as Dm;
+
+              break;
+            } else {
+              console.debug(`Identified a direct conversation with admin address ${adminAddress} lacks a 'send' member; it will not be used for the startup announcement`);
+            }
+          }
+        }
+
+        if (!conversation) {
+          console.debug(
+            `No existing 1-on-1 conversation found with admin ${adminAddress}, creating new conversation`,
+          );
+          try {
+            conversation = await xmtpClient.conversations.newDm(adminAddress);
+            console.log(`New conversation created with admin: ${adminAddress}`);
+          } catch (createError) {
+            console.error(
+              `Failed to create conversation with admin ${adminAddress}:`,
+              createError,
+            );
+          }
+        }
+
+        if (conversation) {
+          await conversation.send("🤖 xombi is now online and ready!");
+          console.log(`Startup announcement sent to admin: ${adminAddress}`);
+        }
+      } catch (error) {
+        console.error(
+          `Failed to send startup announcement to admin ${adminAddress}:`,
+          error,
+        );
+      }
+    }
   }
 
   /**
@@ -101,6 +205,12 @@ export class AppInitializer {
     const webhookComponents = await WebhookInitializer.initializeWebhookSystem(
       webhookConfig,
       xmtpResult.client,
+    );
+
+    // Send startup announcements to admins
+    await this.sendAdminAnnouncements(
+      xmtpResult.client,
+      appConfig.adminAddresses,
     );
 
     // Start message processing loop
