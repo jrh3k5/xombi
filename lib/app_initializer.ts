@@ -8,7 +8,14 @@ import {
   XMTPClientCreationError,
 } from "./xmtp_client_factory.js";
 import { WebhookInitializer } from "./webhook_initializer.js";
-import { Client, Conversation, DecodedMessage, Dm } from "@xmtp/node-sdk";
+import {
+  Client,
+  Conversation,
+  DecodedMessage,
+  Dm,
+  IdentifierKind,
+  type Identifier,
+} from "@xmtp/node-sdk";
 import { RequestTracker } from "../webhook/server.js";
 import { UnresolvableAddressError } from "../ombi/errors.js";
 
@@ -134,7 +141,21 @@ export class AppInitializer {
             `No existing 1-on-1 conversation found with admin ${adminAddress}, creating new conversation`,
           );
           try {
-            conversation = await xmtpClient.conversations.newDm(adminAddress);
+            // Convert Ethereum address to inbox ID
+            const identifier: Identifier = {
+              identifier: adminAddress,
+              identifierKind: IdentifierKind.Ethereum,
+            };
+            const inboxId = await xmtpClient.getInboxIdByIdentifier(identifier);
+
+            if (!inboxId) {
+              console.error(
+                `Could not find inbox ID for admin ${adminAddress}. The address may not be registered on XMTP.`,
+              );
+              continue;
+            }
+
+            conversation = await xmtpClient.conversations.newDm(inboxId);
             console.log(`New conversation created with admin: ${adminAddress}`);
           } catch (createError) {
             console.error(
