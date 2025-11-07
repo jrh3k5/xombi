@@ -26,7 +26,7 @@
   "dependencies": {
     "@types/express": "^5.0.5",
     "@xmtp/node-sdk": "^4.2.4",
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "viem": "^2.38.6"
