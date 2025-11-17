@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/express": "^5.0.5",
-    "@xmtp/node-sdk": "^4.2.6",
+    "@xmtp/node-sdk": "^4.3.1",
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
