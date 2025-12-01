@@ -28,7 +28,7 @@
     "@xmtp/node-sdk": "^4.4.0",
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "express": "^5.2.0",
     "viem": "^2.40.0"
   },
   "devDependencies": {
