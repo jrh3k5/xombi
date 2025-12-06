@@ -24,11 +24,11 @@
   "author": "Joshua Hyde",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/express": "^5.0.5",
+    "@types/express": "^5.0.6",
     "@xmtp/node-sdk": "^4.4.0",
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "viem": "^2.40.3"
   },
   "devDependencies": {
