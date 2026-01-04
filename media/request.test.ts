@@ -79,7 +79,13 @@ describe("requestMovie", () => {
 
 describe("requestTV", () => {
   const senderAddress = "0xabc" as `0x${string}`;
-  const show = new TVSearchResult("1", "Lost", new Date("2025-01-01"), 6, "Ended");
+  const show = new TVSearchResult(
+    "1",
+    "Lost",
+    new Date("2025-01-01"),
+    6,
+    "Ended",
+  );
   let ombiClient: jest.Mocked<OmbiClient>;
   let conversation: jest.Mocked<Dm>;
   let message: jest.Mocked<DecodedMessage<string>>;
