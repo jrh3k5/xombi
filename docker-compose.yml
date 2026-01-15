@@ -3,66 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - ombi
     user: "node"
     working_dir: /home/node/app
     volumes:
       - ./:/home/node/app
       - /home/node/app/node_modules
     environment:
-      DEBUG_OMBI_SEARCH: "true"
-      DEBUG_OMBI_WEBHOOK: "true"
-      OMBI_API_URL: "http://ombi:3579"
-      OMBI_XOMBI_WEBHOOK_ENABLED: "true"
-      OMBI_XOMBI_APPLICATION_KEY: "b5b11d225485a47fd6d4e80f190519de7bac80d14b4f3810f50d18ddf4b98533"
-      OMBI_XOMBI_WEBHOOK_BASE_URL: "http://xombi:3000"
-      OMBI_XOMBI_WEBHOOK_ALLOWLISTED_IPS: "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16,127.0.0.1,::1,::ffff:127.0.0.1"
-      XMTP_ENV: "dev"
-      XMTP_REVOKE_ALL_OTHER_INSTALLATIONS: "true"
+      XMTP_ENV: "production"
     env_file:
       - .env
-    networks:
-      xombi-network:
-        ipv4_address: 172.16.0.10
-  ombi:
-    image: ghcr.io/linuxserver/ombi:v4.47.1-ls215
-    depends_on:
-      - mysql
-    container_name: ombi
-    restart: unless-stopped
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Zurich
-    volumes:
-      - ./.docker/ombi/config:/config
     ports:
-      - "9753:3579"
-    networks:
-      xombi-network:
-        ipv4_address: 172.16.0.20
-  mysql:
-    image: mysql:8.0
-    container_name: ombi-mysql
+      - "3000:3000"
     restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=ombi_root_password
-      - MYSQL_DATABASE=ombi
-      - MYSQL_USER=ombi
-      - MYSQL_PASSWORD=ombi_password
-    volumes:
-      - ./.docker/mysql/data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      xombi-network:
-        ipv4_address: 172.16.0.30
-
-networks:
-  xombi-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.16.0.0/24
-          gateway: 172.16.0.1
