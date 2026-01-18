@@ -191,6 +191,7 @@ ALLOW_LIST=<your wallet address>
 XOMBI_SIGNER_KEY=<the private key to be used by Xombi to sign XMTP messages>
 XMTP_ENCRYPTION_KEY=<encryption key for local storage, generate with: openssl rand -hex 32>
 OMBI_API_KEY=<your Ombi API key>
+OMBI_API_URL=http://ombi:5000
 USERNAME_<your wallet address>=<your username as it appears in Ombi>
 ```
 
