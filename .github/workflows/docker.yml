@@ -64,13 +64,13 @@ jobs:
           # Check logs for successful initialization or errors
           echo "📋 Container logs:"
           docker logs xombi-test
-          
+
           # Verify the application actually started (not just the container)
           if docker logs xombi-test 2>&1 | grep -q "ERR_MODULE_NOT_FOUND\|Error:"; then
             echo "❌ Application failed to start - errors detected in logs"
             exit 1
           fi
-          
+
           if ! docker logs xombi-test 2>&1 | grep -q "Xombi is running\|XMTP client created\|Listening for"; then
             echo "⚠️  Warning: Could not confirm application initialization"
             echo "Container is running but application may not have started correctly"
