@@ -46,7 +46,9 @@ export async function requestMovie(
       await conversation.sendText("That movie has already been requested.");
       return;
     } else if (error instanceof NoRequestPermissions) {
-      await conversation.sendText("You do not have permission to request a movie.");
+      await conversation.sendText(
+        "You do not have permission to request a movie.",
+      );
       return;
     }
 
@@ -94,7 +96,9 @@ export async function requestTV(
       await conversation.sendText("That TV show has already been requested.");
       return;
     } else if (error instanceof NoRequestPermissions) {
-      await conversation.sendText("You do not have permission to request a show.");
+      await conversation.sendText(
+        "You do not have permission to request a show.",
+      );
       return;
     }
 

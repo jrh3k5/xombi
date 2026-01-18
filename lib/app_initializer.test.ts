@@ -322,7 +322,9 @@ describe("AppInitializer", () => {
         extraMember,
       ]);
       mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
-      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue(
+        "admin-inbox-id",
+      );
       mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       await AppInitializer.sendAdminAnnouncements(
@@ -340,7 +342,9 @@ describe("AppInitializer", () => {
       const adminAddress = "0xadmin123";
 
       mockXmtpClient.conversations.list.mockResolvedValue([]);
-      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue(
+        "admin-inbox-id",
+      );
       mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       await AppInitializer.sendAdminAnnouncements(
@@ -389,7 +393,9 @@ describe("AppInitializer", () => {
       const error = new Error("Failed to create DM");
 
       mockXmtpClient.conversations.list.mockResolvedValue([]);
-      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue(
+        "admin-inbox-id",
+      );
       mockXmtpClient.conversations.createDm.mockRejectedValue(error);
 
       await AppInitializer.sendAdminAnnouncements(
@@ -502,7 +508,9 @@ describe("AppInitializer", () => {
       mockXmtpClient.conversations.list.mockResolvedValue([
         conversationWithoutSend,
       ]);
-      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue(
+        "admin-inbox-id",
+      );
       mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       // getEthereumAddressesOfMember is only called for non-bot members (adminMember)

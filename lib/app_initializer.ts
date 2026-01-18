@@ -152,7 +152,8 @@ export class AppInitializer {
               identifier: adminAddress,
               identifierKind: IdentifierKind.Ethereum,
             };
-            const inboxId = await xmtpClient.fetchInboxIdByIdentifier(identifier);
+            const inboxId =
+              await xmtpClient.fetchInboxIdByIdentifier(identifier);
 
             if (!inboxId) {
               console.error(
