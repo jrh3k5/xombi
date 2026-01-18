@@ -14,6 +14,18 @@ This works only with the XMTPv3 network.
 
 ## Installation
 
+### Option 1: Using Docker (Recommended)
+
+Create a `.env` file with your configuration (see [Configuration](#configuration) below), then run:
+
+```
+docker compose up -d
+```
+
+This will build and run the xombi service in a container.
+
+### Option 2: Manual Installation
+
 Within GitHub, click the green "Code" button and select the "Download ZIP" option.
 
 Extract the contents of the ZIP file to a location of your choice.
@@ -134,14 +146,14 @@ npm start
 
 Following that, send `help` to the bot for instructions on how to interact with it.
 
-#### Running Project Locally
+#### Running Project Locally for Development
 
-This project provides a Docker setup that can be used to run the bot with its own Ombi instance using Docker. This will require connecting the local Ombi instance to a Plex server.
+This project provides a Docker setup that can be used to run the bot with its own Ombi instance for local development and testing. This will require connecting the local Ombi instance to a Plex server.
 
 This requires manual setup of the Ombi instance first, so run this command first to start Ombi:
 
 ```
-docker compose up ombi -d
+docker compose -f docker-compose.dev.yml up ombi -d
 ```
 
 Once it's running, navigate to http://localhost:9753 to set up Ombi. As part of the initial setup, choose MySQL as the database and provide the following values:
@@ -167,7 +179,7 @@ USERNAME_<your wallet address>=<your username as it appears in Ombi>
 Then run:
 
 ```
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d
 ```
 
-This will start the bot on top of the Ombi instance already running. **Webhook notifications are enabled by default in Docker mode** - the containers can communicate directly without exposing ports to the host.
+This will start the bot on top of the Ombi instance already running. **Webhook notifications are enabled by default in local development mode** - the containers can communicate directly without exposing ports to the host.
