@@ -1,0 +1,69 @@
+# This workflow tests Docker container build and startup
+
+name: Docker CI
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create test .env file
+        run: |
+          cat > .env << 'EOF'
+          ALLOW_LIST=0x0000000000000000000000000000000000000001
+          XMTP_ENV=production
+          XOMBI_SIGNER_KEY=0x0000000000000000000000000000000000000000000000000000000000000001
+          XMTP_ENCRYPTION_KEY=0x0000000000000000000000000000000000000000000000000000000000000002
+          OMBI_API_KEY=test-api-key
+          OMBI_API_URL=http://localhost:5000
+          USERNAME_0x0000000000000000000000000000000000000001=testuser@example.com
+          OMBI_XOMBI_WEBHOOK_ENABLED=false
+          EOF
+      
+      - name: Build Docker image
+        run: docker build -t xombi:test .
+      
+      - name: Start Docker container
+        run: |
+          # Start container in detached mode with a timeout
+          docker run -d --name xombi-test \
+            --env-file .env \
+            xombi:test
+          
+          # Wait for container to start (max 30 seconds)
+          echo "Waiting for container to start..."
+          for i in {1..30}; do
+            if docker ps | grep -q xombi-test; then
+              echo "Container started successfully"
+              break
+            fi
+            sleep 1
+          done
+          
+          # Give the app a few seconds to initialize
+          sleep 5
+          
+          # Check if container is still running
+          if ! docker ps | grep -q xombi-test; then
+            echo "Container failed to stay running"
+            docker logs xombi-test
+            exit 1
+          fi
+          
+          echo "Container is running successfully"
+          docker logs xombi-test
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop xombi-test || true
+          docker rm xombi-test || true
