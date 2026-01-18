@@ -43,10 +43,12 @@ export async function requestMovie(
     await ombiClient.requestMovie(senderAddress, selectedMovie);
   } catch (error) {
     if (error instanceof MovieAlreadyRequestedError) {
-      await conversation.send("That movie has already been requested.");
+      await conversation.sendText("That movie has already been requested.");
       return;
     } else if (error instanceof NoRequestPermissions) {
-      await conversation.send("You do not have permission to request a movie.");
+      await conversation.sendText(
+        "You do not have permission to request a movie.",
+      );
       return;
     }
 
@@ -58,7 +60,7 @@ export async function requestMovie(
     requestTracker.trackRequest(selectedMovie.getId(), "movie", senderAddress);
   }
 
-  await conversation.send(
+  await conversation.sendText(
     `Your request for '${selectedMovie.getListText()}' has been enqueued!`,
   );
 
@@ -91,10 +93,12 @@ export async function requestTV(
     await ombiClient.requestTV(senderAddress, selectedShow);
   } catch (error) {
     if (error instanceof ShowAlreadyRequestedError) {
-      await conversation.send("That TV show has already been requested.");
+      await conversation.sendText("That TV show has already been requested.");
       return;
     } else if (error instanceof NoRequestPermissions) {
-      await conversation.send("You do not have permission to request a show.");
+      await conversation.sendText(
+        "You do not have permission to request a show.",
+      );
       return;
     }
 
@@ -106,7 +110,7 @@ export async function requestTV(
     requestTracker.trackRequest(selectedShow.getId(), "tv", senderAddress);
   }
 
-  await conversation.send(
+  await conversation.sendText(
     `Your request for '${selectedShow.getListText()}' has been enqueued!`,
   );
 

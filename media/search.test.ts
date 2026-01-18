@@ -6,7 +6,7 @@ describe("search.ts", () => {
   let ombiClient: OmbiClient;
   let senderAddress: `0x${string}`;
   let message: Partial<DecodedMessage<string>>;
-  let conversation: Partial<Dm> & { send: jest.Mock };
+  let conversation: Partial<Dm> & { sendText: jest.Mock };
 
   beforeEach(() => {
     ombiClient = {
@@ -25,7 +25,7 @@ describe("search.ts", () => {
     };
     senderAddress = "0x1234567890abcdef1234567890abcdef12345678";
     message = { content: "search Batman" };
-    conversation = { send: jest.fn() };
+    conversation = { sendText: jest.fn() };
   });
 
   describe("searchMovies", () => {
@@ -52,7 +52,7 @@ describe("search.ts", () => {
         message as DecodedMessage<string>,
         conversation as unknown as Dm,
       );
-      expect(conversation.send).toHaveBeenCalledWith(
+      expect(conversation.sendText).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
       expect(ombiClient.searchMovies).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe("search.ts", () => {
         message as DecodedMessage<string>,
         conversation as unknown as Dm,
       );
-      expect(conversation.send).toHaveBeenCalledWith(
+      expect(conversation.sendText).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
       expect(ombiClient.searchMovies).not.toHaveBeenCalled();
@@ -98,7 +98,7 @@ describe("search.ts", () => {
         message as DecodedMessage<string>,
         conversation as unknown as Dm,
       );
-      expect(conversation.send).toHaveBeenCalledWith(
+      expect(conversation.sendText).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
       expect(ombiClient.searchTV).not.toHaveBeenCalled();
@@ -112,7 +112,7 @@ describe("search.ts", () => {
         message as DecodedMessage<string>,
         conversation as unknown as Dm,
       );
-      expect(conversation.send).toHaveBeenCalledWith(
+      expect(conversation.sendText).toHaveBeenCalledWith(
         "Please provide a search term.",
       );
       expect(ombiClient.searchTV).not.toHaveBeenCalled();

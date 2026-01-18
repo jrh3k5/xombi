@@ -28,7 +28,7 @@ export async function triageCurrentStep(
   }
 
   if (sentContent === "help") {
-    await conversation.send(
+    await conversation.sendText(
       "To search for a movie, send 'movie <search terms>' to me; for TV shows, send 'tv <search terms>'",
     );
   } else if (sentContent.startsWith("movie ")) {
@@ -63,6 +63,6 @@ export async function triageCurrentStep(
       }
     }
 
-    await conversation.send("Sorry, I don't know what to do with that.");
+    await conversation.sendText("Sorry, I don't know what to do with that.");
   }
 }

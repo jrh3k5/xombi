@@ -130,13 +130,13 @@ export class AppInitializer {
 
           // Only use this conversation if it's a 1-on-1 DM with the admin
           if (hasAdmin && hasBot) {
-            if ("send" in conv) {
+            if ("sendText" in conv) {
               conversation = conv as Dm;
 
               break;
             } else {
               console.debug(
-                `Identified a direct conversation with admin address ${adminAddress} lacks a 'send' member; it will not be used for the startup announcement`,
+                `Identified a direct conversation with admin address ${adminAddress} lacks a 'sendText' member; it will not be used for the startup announcement`,
               );
             }
           }
@@ -152,7 +152,8 @@ export class AppInitializer {
               identifier: adminAddress,
               identifierKind: IdentifierKind.Ethereum,
             };
-            const inboxId = await xmtpClient.getInboxIdByIdentifier(identifier);
+            const inboxId =
+              await xmtpClient.fetchInboxIdByIdentifier(identifier);
 
             if (!inboxId) {
               console.error(
@@ -161,7 +162,7 @@ export class AppInitializer {
               continue;
             }
 
-            conversation = await xmtpClient.conversations.newDm(inboxId);
+            conversation = await xmtpClient.conversations.createDm(inboxId);
             console.log(`New conversation created with admin: ${adminAddress}`);
           } catch (createError) {
             console.error(
@@ -172,7 +173,7 @@ export class AppInitializer {
         }
 
         if (conversation) {
-          await conversation.send("🤖 xombi is now online and ready!");
+          await conversation.sendText("🤖 xombi is now online and ready!");
           console.log(`Startup announcement sent to admin: ${adminAddress}`);
         }
       } catch (error) {
@@ -268,7 +269,7 @@ export class AppInitializer {
         if (
           message?.senderInboxId.toLowerCase() ===
             xmtpClient.inboxId.toLowerCase() ||
-          message?.contentType?.typeId !== "text" ||
+          (message as DecodedMessage).contentType?.typeId !== "text" ||
           typeof message.content !== "string"
         ) {
           continue;
@@ -320,7 +321,7 @@ export class AppInitializer {
         }
 
         if (allowedCount < conversationMembers.length) {
-          await conversation.send(
+          await conversation.sendText(
             "Sorry, I'm not allowed to talk to strangers.",
           );
           continue;
@@ -347,9 +348,9 @@ export class AppInitializer {
         console.log(err);
 
         if (err instanceof UnresolvableAddressError) {
-          await conversation?.send(errorMessageUnresolvedUser);
+          await conversation?.sendText(errorMessageUnresolvedUser);
         } else {
-          await conversation?.send(
+          await conversation?.sendText(
             "Sorry, I encountered an unexpected error while processing your message.",
           );
         }

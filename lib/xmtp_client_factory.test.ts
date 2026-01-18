@@ -20,6 +20,7 @@ jest.mock("@xmtp/node-sdk", () => ({
   Client: {
     create: jest.fn(),
     inboxStateFromInboxIds: jest.fn(),
+    fetchInboxStates: jest.fn(),
     revokeInstallations: jest.fn(),
   },
 }));
@@ -209,7 +210,7 @@ describe("XMTPClientFactory", () => {
       // Mock inbox state and revocation
       jest
         .requireMock("@xmtp/node-sdk")
-        .Client.inboxStateFromInboxIds.mockResolvedValue([
+        .Client.fetchInboxStates.mockResolvedValue([
           {
             installations: [
               { bytes: new Uint8Array([1]) },

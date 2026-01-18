@@ -7,7 +7,7 @@ describe("triageCurrentStep", () => {
   let ombiClient: OmbiClient;
   let senderAddress: `0x${string}`;
   let message: Partial<DecodedMessage<string>>;
-  let conversation: Partial<Dm> & { send: jest.Mock };
+  let conversation: Partial<Dm> & { sendText: jest.Mock };
 
   beforeEach(() => {
     ombiClient = {
@@ -18,7 +18,7 @@ describe("triageCurrentStep", () => {
     };
     senderAddress = "0x1234567890abcdef1234567890abcdef12345678";
     message = { content: "" };
-    conversation = { send: jest.fn() };
+    conversation = { sendText: jest.fn() };
     jest.resetModules();
   });
 
@@ -30,7 +30,7 @@ describe("triageCurrentStep", () => {
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "To search for a movie, send 'movie <search terms>' to me; for TV shows, send 'tv <search terms>'",
     );
   });
@@ -112,7 +112,7 @@ describe("triageCurrentStep", () => {
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "Sorry, I don't know what to do with that.",
     );
   });
@@ -125,6 +125,6 @@ describe("triageCurrentStep", () => {
       message as unknown as DecodedMessage<string>,
       conversation as unknown as Dm,
     );
-    expect(conversation.send).not.toHaveBeenCalled();
+    expect(conversation.sendText).not.toHaveBeenCalled();
   });
 });
