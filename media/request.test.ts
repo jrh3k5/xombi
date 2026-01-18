@@ -26,7 +26,7 @@ describe("requestMovie", () => {
       searchMovies: jest.fn(),
       searchTV: jest.fn(),
     };
-    conversation = { send: jest.fn() } as unknown as jest.Mocked<Dm>;
+    conversation = { sendText: jest.fn() } as unknown as jest.Mocked<Dm>;
     message = { content: "1" } as unknown as jest.Mocked<
       DecodedMessage<string>
     >;
@@ -97,7 +97,7 @@ describe("requestTV", () => {
       searchMovies: jest.fn(),
       searchTV: jest.fn(),
     };
-    conversation = { send: jest.fn() } as unknown as jest.Mocked<Dm>;
+    conversation = { sendText: jest.fn() } as unknown as jest.Mocked<Dm>;
     message = { content: "1" } as unknown as jest.Mocked<
       DecodedMessage<string>
     >;

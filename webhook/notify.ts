@@ -44,7 +44,7 @@ export class XMTPNotifier {
             );
           });
 
-          if (hasTargetMember && "send" in conv) {
+          if (hasTargetMember && "sendText" in conv) {
             conversation = conv as Dm;
             this.conversationCache.set(address.toLowerCase(), conversation);
             break;

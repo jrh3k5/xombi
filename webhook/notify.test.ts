@@ -78,7 +78,7 @@ describe("XMTPNotifier", () => {
 
       await notifier.sendNotification(testAddress, testMessage);
 
-      expect(mockConversation.send).toHaveBeenCalledWith(testMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(testMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress}: ${testMessage}`,
       );
@@ -90,14 +90,11 @@ describe("XMTPNotifier", () => {
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
 
-      // Add send method to conversation to make it a Dm
-      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
-
       await notifier.sendNotification(testAddress, testMessage);
 
       expect(mockXmtpClient.conversations.list).toHaveBeenCalled();
       expect(mockConversation.members).toHaveBeenCalled();
-      expect(mockConversation.send).toHaveBeenCalledWith(testMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(testMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress}: ${testMessage}`,
       );
@@ -116,11 +113,10 @@ describe("XMTPNotifier", () => {
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress.toLowerCase(), testMessage);
 
-      expect(mockConversation.send).toHaveBeenCalledWith(testMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(testMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress.toLowerCase()}: ${testMessage}`,
       );
@@ -138,11 +134,10 @@ describe("XMTPNotifier", () => {
       ]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       await notifier.sendNotification(testAddress, testMessage);
 
-      expect(mockConversation.send).toHaveBeenCalledWith(testMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(testMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress}: ${testMessage}`,
       );
@@ -164,12 +159,12 @@ describe("XMTPNotifier", () => {
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([otherMember, mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
+
 
       await notifier.sendNotification(testAddress, testMessage);
 
       expect(mockConversation.members).toHaveBeenCalled();
-      expect(mockConversation.send).toHaveBeenCalledWith(testMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(testMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress}: ${testMessage}`,
       );
@@ -188,7 +183,7 @@ describe("XMTPNotifier", () => {
 
       expect(mockXmtpClient.conversations.list).toHaveBeenCalled();
       expect(mockConversation.members).toHaveBeenCalled();
-      expect(mockConversation.send).not.toHaveBeenCalled();
+      expect(mockConversation.sendText).not.toHaveBeenCalled();
       expect(console.log).toHaveBeenCalledWith(
         `No existing conversation found with ${testAddress}, cannot send notification`,
       );
@@ -230,7 +225,7 @@ describe("XMTPNotifier", () => {
         testAddress.toLowerCase(),
         mockConversation,
       );
-      mockConversation.send.mockRejectedValue(sendError);
+      mockConversation.sendText.mockRejectedValue(sendError);
 
       await expect(
         notifier.sendNotification(testAddress, testMessage),
@@ -276,7 +271,6 @@ describe("XMTPNotifier", () => {
       mockXmtpClientConversationsListFn.mockResolvedValue([mockConversation]);
       mockConversation.members.mockResolvedValue([mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
-      mockConversationSendFn = jest.fn().mockResolvedValue(undefined);
 
       // First call - should list conversations
       await notifier.sendNotification(testAddress, testMessage);
@@ -285,7 +279,7 @@ describe("XMTPNotifier", () => {
       // Second call - should use cache
       await notifier.sendNotification(testAddress, testMessage);
       expect(mockXmtpClient.conversations.list).toHaveBeenCalledTimes(1); // Still 1, not called again
-      expect(mockConversation.send).toHaveBeenCalledTimes(2); // Called both times
+      expect(mockConversation.sendText).toHaveBeenCalledTimes(2); // Called both times
     });
   });
 
@@ -377,7 +371,7 @@ describe("XMTPNotifier", () => {
 
       await notifier.sendNotification(testAddress, longMessage);
 
-      expect(mockConversation.send).toHaveBeenCalledWith(longMessage);
+      expect(mockConversation.sendText).toHaveBeenCalledWith(longMessage);
       expect(console.log).toHaveBeenCalledWith(
         `Notification sent to ${testAddress}: ${longMessage}`,
       );

@@ -269,7 +269,7 @@ describe("AppInitializer", () => {
           list: jest.fn().mockResolvedValue([]),
           createDm: jest.fn(),
         },
-        fetchInboxIdByIdentifier: jest.fn(),
+        fetchInboxIdByIdentifier: jest.fn().mockResolvedValue("admin-inbox-id"),
       };
     });
 
@@ -522,7 +522,7 @@ describe("AppInitializer", () => {
       );
 
       expect(console.debug).toHaveBeenCalledWith(
-        expect.stringContaining("lacks a 'send' member"),
+        expect.stringContaining("lacks a 'sendText' member"),
       );
       expect(mockXmtpClient.conversations.createDm).toHaveBeenCalled();
     });

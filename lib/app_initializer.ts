@@ -130,13 +130,13 @@ export class AppInitializer {
 
           // Only use this conversation if it's a 1-on-1 DM with the admin
           if (hasAdmin && hasBot) {
-            if ("send" in conv) {
+            if ("sendText" in conv) {
               conversation = conv as Dm;
 
               break;
             } else {
               console.debug(
-                `Identified a direct conversation with admin address ${adminAddress} lacks a 'send' member; it will not be used for the startup announcement`,
+                `Identified a direct conversation with admin address ${adminAddress} lacks a 'sendText' member; it will not be used for the startup announcement`,
               );
             }
           }
