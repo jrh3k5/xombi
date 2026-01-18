@@ -50,18 +50,28 @@ jobs:
             sleep 1
           done
 
-          # Give the app a few seconds to initialize
-          sleep 5
+          # Give the app time to initialize and show any startup errors
+          sleep 10
 
           # Check if container is still running
           if ! docker ps | grep -q xombi-test; then
-            echo "Container failed to stay running"
+            echo "❌ Container failed to stay running"
+            echo "Container logs:"
             docker logs xombi-test
             exit 1
           fi
 
-          echo "Container is running successfully"
+          # Check logs for successful initialization or errors
+          echo "📋 Container logs:"
           docker logs xombi-test
+
+          if ! docker logs xombi-test 2>&1 | grep -q "Agent initialized on 0x936EccC64dB246f93D172Fd1acA534Ca7153C877"; then
+            echo "⚠️  Warning: Could not confirm application initialization"
+            echo "Container is running but application may not have started correctly"
+            exit 1
+          fi
+
+          echo "✅ Container and application are running successfully"
 
       - name: Cleanup
         if: always()
