@@ -16,7 +16,25 @@ This works only with the XMTPv3 network.
 
 ### Option 1: Using Docker (Recommended)
 
-Create a `.env` file with your configuration (see [Configuration](#configuration) below), then run:
+Create a `.env` file with your configuration (see [Configuration](#configuration) below), then build a `docker-compose.yml` file like the following:
+
+```
+services:
+  xombi:
+    image: jrh3k5/xombi:latest
+    user: "node"
+    working_dir: /home/node/app
+    volumes:
+      - ./:/home/node/app
+      - /home/node/app/node_modules
+    environment:
+      XMTP_ENV: "production"
+    env_file:
+      - .env
+    restart: unless-stopped
+```
+
+Following that, you can run:
 
 ```
 docker compose up -d
