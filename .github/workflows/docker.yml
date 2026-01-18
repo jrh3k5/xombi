@@ -20,33 +20,14 @@ jobs:
             runner: ubuntu-latest
             tag: xombi:test-amd64
             container_name: xombi-test-amd64
-            use_buildx: false
-            run_platform: ""
           - arch: arm64
             platform: linux/arm64
             runner: ubuntu-24.04-arm
             tag: xombi:test-arm64
             container_name: xombi-test-arm64
-            use_buildx: false
-            run_platform: ""
-          - arch: amd64-on-arm
-            platform: linux/amd64
-            runner: ubuntu-24.04-arm
-            tag: xombi:test-amd64-on-arm
-            container_name: xombi-test-amd64-on-arm
-            use_buildx: true
-            run_platform: "--platform=linux/amd64"
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up QEMU for cross-arch
-        if: ${{ matrix.use_buildx == 'true' }}
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        if: ${{ matrix.use_buildx == 'true' }}
-        uses: docker/setup-buildx-action@v3
 
       - name: Create test .env file
         run: |
@@ -64,17 +45,12 @@ jobs:
 
       - name: Build image
         run: |
-          if [ "${{ matrix.use_buildx }}" = "true" ]; then
-            docker buildx build --platform ${{ matrix.platform }} -t ${{ matrix.tag }} --load .
-          else
-            docker build -t ${{ matrix.tag }} .
-          fi
+          docker build -t ${{ matrix.tag }} .
 
       - name: Start Docker container
         run: |
           docker run -d --name ${{ matrix.container_name }} \
             --env-file .env \
-            ${{ matrix.run_platform }} \
             ${{ matrix.tag }}
 
           echo "Waiting for container to start..."
