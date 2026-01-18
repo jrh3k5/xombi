@@ -246,12 +246,12 @@ describe("AppInitializer", () => {
       inboxId: string;
       conversations: {
         list: jest.Mock;
-        newDm: jest.Mock;
+        createDm: jest.Mock;
       };
-      getInboxIdByIdentifier: jest.Mock;
+      fetchInboxIdByIdentifier: jest.Mock;
     };
     let mockConversation: {
-      send: jest.Mock;
+      sendText: jest.Mock;
       members: jest.Mock;
     };
 
@@ -259,7 +259,7 @@ describe("AppInitializer", () => {
       jest.spyOn(console, "debug").mockImplementation();
 
       mockConversation = {
-        send: jest.fn().mockResolvedValue(undefined),
+        sendText: jest.fn().mockResolvedValue(undefined),
         members: jest.fn(),
       };
 
@@ -267,9 +267,9 @@ describe("AppInitializer", () => {
         inboxId: "bot-inbox-id",
         conversations: {
           list: jest.fn().mockResolvedValue([]),
-          newDm: jest.fn(),
+          createDm: jest.fn(),
         },
-        getInboxIdByIdentifier: jest.fn(),
+        fetchInboxIdByIdentifier: jest.fn(),
       };
     });
 
@@ -301,13 +301,13 @@ describe("AppInitializer", () => {
         [adminAddress],
       );
 
-      expect(mockConversation.send).toHaveBeenCalledWith(
+      expect(mockConversation.sendText).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
       );
       expect(console.log).toHaveBeenCalledWith(
         `Startup announcement sent to admin: ${adminAddress}`,
       );
-      expect(mockXmtpClient.conversations.newDm).not.toHaveBeenCalled();
+      expect(mockXmtpClient.conversations.createDm).not.toHaveBeenCalled();
     });
 
     it("should skip conversations with more than 2 members", async () => {
@@ -322,8 +322,8 @@ describe("AppInitializer", () => {
         extraMember,
       ]);
       mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
-      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
-      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       await AppInitializer.sendAdminAnnouncements(
         mockXmtpClient as unknown as Client,
@@ -333,29 +333,29 @@ describe("AppInitializer", () => {
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringContaining("has 3 members"),
       );
-      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalled();
+      expect(mockXmtpClient.conversations.createDm).toHaveBeenCalled();
     });
 
     it("should create new conversation when none exists", async () => {
       const adminAddress = "0xadmin123";
 
       mockXmtpClient.conversations.list.mockResolvedValue([]);
-      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
-      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       await AppInitializer.sendAdminAnnouncements(
         mockXmtpClient as unknown as Client,
         [adminAddress],
       );
 
-      expect(mockXmtpClient.getInboxIdByIdentifier).toHaveBeenCalledWith({
+      expect(mockXmtpClient.fetchInboxIdByIdentifier).toHaveBeenCalledWith({
         identifier: adminAddress,
         identifierKind: expect.anything(),
       });
-      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalledWith(
+      expect(mockXmtpClient.conversations.createDm).toHaveBeenCalledWith(
         "admin-inbox-id",
       );
-      expect(mockConversation.send).toHaveBeenCalledWith(
+      expect(mockConversation.sendText).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
       );
       expect(console.log).toHaveBeenCalledWith(
@@ -370,7 +370,7 @@ describe("AppInitializer", () => {
       const adminAddress = "0xadmin123";
 
       mockXmtpClient.conversations.list.mockResolvedValue([]);
-      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue(null);
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue(null);
 
       await AppInitializer.sendAdminAnnouncements(
         mockXmtpClient as unknown as Client,
@@ -380,8 +380,8 @@ describe("AppInitializer", () => {
       expect(console.error).toHaveBeenCalledWith(
         `Could not find inbox ID for admin ${adminAddress}. The address may not be registered on XMTP.`,
       );
-      expect(mockXmtpClient.conversations.newDm).not.toHaveBeenCalled();
-      expect(mockConversation.send).not.toHaveBeenCalled();
+      expect(mockXmtpClient.conversations.createDm).not.toHaveBeenCalled();
+      expect(mockConversation.sendText).not.toHaveBeenCalled();
     });
 
     it("should handle error when creating new conversation", async () => {
@@ -389,8 +389,8 @@ describe("AppInitializer", () => {
       const error = new Error("Failed to create DM");
 
       mockXmtpClient.conversations.list.mockResolvedValue([]);
-      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
-      mockXmtpClient.conversations.newDm.mockRejectedValue(error);
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.createDm.mockRejectedValue(error);
 
       await AppInitializer.sendAdminAnnouncements(
         mockXmtpClient as unknown as Client,
@@ -401,7 +401,7 @@ describe("AppInitializer", () => {
         `Failed to create conversation with admin ${adminAddress}:`,
         error,
       );
-      expect(mockConversation.send).not.toHaveBeenCalled();
+      expect(mockConversation.sendText).not.toHaveBeenCalled();
     });
 
     it("should handle error when sending message", async () => {
@@ -415,7 +415,7 @@ describe("AppInitializer", () => {
       const adminMember = { inboxId: "admin-inbox-id" };
 
       mockConversation.members.mockResolvedValue([botMember, adminMember]);
-      mockConversation.send.mockRejectedValue(error);
+      mockConversation.sendText.mockRejectedValue(error);
       mockXmtpClient.conversations.list.mockResolvedValue([mockConversation]);
       getEthereumAddressesOfMember.mockReturnValue([adminAddress]);
 
@@ -443,12 +443,12 @@ describe("AppInitializer", () => {
       const adminMember2 = { inboxId: "admin-inbox-id-2" };
 
       const mockConversation1 = {
-        send: jest.fn().mockResolvedValue(undefined),
+        sendText: jest.fn().mockResolvedValue(undefined),
         members: jest.fn().mockResolvedValue([botMember, adminMember1]),
       };
 
       const mockConversation2 = {
-        send: jest.fn().mockResolvedValue(undefined),
+        sendText: jest.fn().mockResolvedValue(undefined),
         members: jest.fn().mockResolvedValue([botMember, adminMember2]),
       };
 
@@ -471,10 +471,10 @@ describe("AppInitializer", () => {
         [adminAddress1, adminAddress2],
       );
 
-      expect(mockConversation1.send).toHaveBeenCalledWith(
+      expect(mockConversation1.sendText).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
       );
-      expect(mockConversation2.send).toHaveBeenCalledWith(
+      expect(mockConversation2.sendText).toHaveBeenCalledWith(
         "🤖 xombi is now online and ready!",
       );
       expect(console.log).toHaveBeenCalledWith(
@@ -502,8 +502,8 @@ describe("AppInitializer", () => {
       mockXmtpClient.conversations.list.mockResolvedValue([
         conversationWithoutSend,
       ]);
-      mockXmtpClient.getInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
-      mockXmtpClient.conversations.newDm.mockResolvedValue(mockConversation);
+      mockXmtpClient.fetchInboxIdByIdentifier.mockResolvedValue("admin-inbox-id");
+      mockXmtpClient.conversations.createDm.mockResolvedValue(mockConversation);
 
       // getEthereumAddressesOfMember is only called for non-bot members (adminMember)
       getEthereumAddressesOfMember.mockReturnValueOnce([adminAddress]);
@@ -516,7 +516,7 @@ describe("AppInitializer", () => {
       expect(console.debug).toHaveBeenCalledWith(
         expect.stringContaining("lacks a 'send' member"),
       );
-      expect(mockXmtpClient.conversations.newDm).toHaveBeenCalled();
+      expect(mockXmtpClient.conversations.createDm).toHaveBeenCalled();
     });
   });
 
@@ -530,7 +530,7 @@ describe("AppInitializer", () => {
     };
 
     const mockConversation = {
-      send: jest.fn(),
+      sendText: jest.fn(),
       members: jest.fn(),
     };
 
@@ -553,7 +553,7 @@ describe("AppInitializer", () => {
         mockConversation,
       );
       mockConversation.members.mockResolvedValue([mockMember]);
-      mockConversation.send.mockResolvedValue(undefined);
+      mockConversation.sendText.mockResolvedValue(undefined);
     });
 
     it("should handle UnresolvableAddressError with user-friendly message", async () => {
@@ -579,7 +579,7 @@ describe("AppInitializer", () => {
 
       // Create a promise that resolves when we've processed the message
       let messageProcessed = false;
-      mockConversation.send.mockImplementation(async () => {
+      mockConversation.sendText.mockImplementation(async () => {
         messageProcessed = true;
         return Promise.resolve();
       });
@@ -602,7 +602,7 @@ describe("AppInitializer", () => {
       });
 
       // Verify the error handling behavior
-      expect(mockConversation.send).toHaveBeenCalledWith(
+      expect(mockConversation.sendText).toHaveBeenCalledWith(
         "There is a user mapping configuration issue. Please contact xombi's administrator for more help.\n\nUntil this is resolved, you will not be able to use xombi.",
       );
     });
@@ -628,7 +628,7 @@ describe("AppInitializer", () => {
 
       // Create a promise that resolves when we've processed the message
       let messageProcessed = false;
-      mockConversation.send.mockImplementation(async () => {
+      mockConversation.sendText.mockImplementation(async () => {
         messageProcessed = true;
         return Promise.resolve();
       });
@@ -651,7 +651,7 @@ describe("AppInitializer", () => {
       });
 
       // Verify the error handling behavior
-      expect(mockConversation.send).toHaveBeenCalledWith(
+      expect(mockConversation.sendText).toHaveBeenCalledWith(
         "Sorry, I encountered an unexpected error while processing your message.",
       );
     });

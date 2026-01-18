@@ -194,7 +194,7 @@ export class XMTPClientFactory {
 
     // Get inbox state to find all installations
     console.log("Getting inbox state to find installations...");
-    const inboxStates = await Client.inboxStateFromInboxIds(
+    const inboxStates = await Client.fetchInboxStates(
       [inboxId],
       environment,
     );
@@ -211,7 +211,7 @@ export class XMTPClientFactory {
     console.log(`Found ${installations.length} installations to revoke`);
 
     // Get installation bytes for revocation
-    const toRevokeInstallationBytes = installations.map((i) => i.bytes);
+    const toRevokeInstallationBytes = installations.map((i: { bytes: Uint8Array }) => i.bytes);
 
     // Revoke installations using static method
     console.log("Revoking all installations...");

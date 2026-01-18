@@ -59,7 +59,7 @@ export class XMTPNotifier {
         return;
       }
 
-      await conversation.send(message);
+      await conversation.sendText(message);
       console.log(`Notification sent to ${address}: ${message}`);
     } catch (error) {
       console.error(`Failed to send notification to ${address}:`, error);

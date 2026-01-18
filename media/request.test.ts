@@ -46,7 +46,7 @@ describe("requestMovie", () => {
   it("enqueues a movie request and notifies the user", async () => {
     await requestMovie(ombiClient, senderAddress, message, conversation);
     expect(ombiClient.requestMovie).toHaveBeenCalledWith(senderAddress, movie);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "Your request for 'The Matrix' has been enqueued!",
     );
   });
@@ -56,7 +56,7 @@ describe("requestMovie", () => {
       new MovieAlreadyRequestedError(""),
     );
     await requestMovie(ombiClient, senderAddress, message, conversation);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "That movie has already been requested.",
     );
   });
@@ -64,7 +64,7 @@ describe("requestMovie", () => {
   it("handles NoRequestPermissions error", async () => {
     ombiClient.requestMovie.mockRejectedValueOnce(new NoRequestPermissions(""));
     await requestMovie(ombiClient, senderAddress, message, conversation);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "You do not have permission to request a movie.",
     );
   });
@@ -116,7 +116,7 @@ describe("requestTV", () => {
   it("enqueues a TV show request and notifies the user", async () => {
     await requestTV(ombiClient, senderAddress, message, conversation);
     expect(ombiClient.requestTV).toHaveBeenCalledWith(senderAddress, show);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "Your request for 'Lost (2025) (6 seasons, Ended)' has been enqueued!",
     );
   });
@@ -126,7 +126,7 @@ describe("requestTV", () => {
       new ShowAlreadyRequestedError(""),
     );
     await requestTV(ombiClient, senderAddress, message, conversation);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "That TV show has already been requested.",
     );
   });
@@ -134,7 +134,7 @@ describe("requestTV", () => {
   it("handles NoRequestPermissions error", async () => {
     ombiClient.requestTV.mockRejectedValueOnce(new NoRequestPermissions(""));
     await requestTV(ombiClient, senderAddress, message, conversation);
-    expect(conversation.send).toHaveBeenCalledWith(
+    expect(conversation.sendText).toHaveBeenCalledWith(
       "You do not have permission to request a show.",
     );
   });

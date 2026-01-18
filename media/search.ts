@@ -23,7 +23,7 @@ export async function searchMovies(
   conversation: Dm,
 ): Promise<void> {
   if (!message.content || message.content.length < 6) {
-    await conversation.send("Please provide a search term.");
+    await conversation.sendText("Please provide a search term.");
     return;
   }
 
@@ -54,7 +54,7 @@ export async function searchTV(
   conversation: Dm,
 ): Promise<void> {
   if (!message.content || message.content.length < 3) {
-    await conversation.send("Please provide a search term.");
+    await conversation.sendText("Please provide a search term.");
     return;
   }
 
@@ -90,7 +90,7 @@ async function showSearchResults(
   }
 
   if (searchResults.length == 0) {
-    await conversation.send("No results found for the given search");
+    await conversation.sendText("No results found for the given search");
     clearUserState(senderAddress);
 
     return;
@@ -109,7 +109,7 @@ async function showSearchResults(
     });
   }
 
-  await conversation.send(responseText);
+  await conversation.sendText(responseText);
 
   setUserState(senderAddress, endState, {
     searchResults: searchResults,

@@ -32,7 +32,7 @@ describe("XMTPNotifier", () => {
     // Mock Conversation (Dm)
     mockConversation = {
       members: jest.fn(),
-      send: mockConversationSendFn,
+      sendText: mockConversationSendFn,
     } as unknown as jest.Mocked<Dm>;
 
     // Mock Member
@@ -224,7 +224,7 @@ describe("XMTPNotifier", () => {
       );
     });
 
-    it("should handle conversation.send() error", async () => {
+    it("should handle conversation.sendText() error", async () => {
       const sendError = new Error("Failed to send message");
       notifier["conversationCache"].set(
         testAddress.toLowerCase(),
