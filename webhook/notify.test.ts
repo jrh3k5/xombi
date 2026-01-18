@@ -160,7 +160,6 @@ describe("XMTPNotifier", () => {
       mockConversation.members.mockResolvedValue([otherMember, mockMember]);
       mockConversationSendFn.mockResolvedValue(undefined);
 
-
       await notifier.sendNotification(testAddress, testMessage);
 
       expect(mockConversation.members).toHaveBeenCalled();
