@@ -44,7 +44,7 @@ This will build and run the xombi service in a container.
 
 #### Upgrading
 
-If you wish to upgrade your instance of Xombi in-place, run the following commands:
+If you wish to upgrade your instance of xombi in-place, run the following commands:
 
 ```
 docker compose pull && docker compose up -d
