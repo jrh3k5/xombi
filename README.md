@@ -21,8 +21,6 @@ Create a `.env` file with your configuration (see [Configuration](#configuration
 ```
 services:
   xombi:
-    # Request x64 architecture for compatibility with XMTP native bindings
-    platform: linux/amd64
     image: jrh3k5/xombi:latest
     user: "node"
     working_dir: /home/node/app
@@ -218,3 +216,18 @@ docker compose -f docker-compose.dev.yml up -d
 ```
 
 This will start the bot on top of the Ombi instance already running. **Webhook notifications are enabled by default in local development mode** - the containers can communicate directly without exposing ports to the host.
+
+## Releasing
+
+To build the amd64 and arm64 images, run the following:
+
+```
+VERSION=$(node -p "require('./package.json').version")
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t jrh3k5/xombi:latest \
+  -t jrh3k5/xombi:"$VERSION" \
+  --push \
+  .
+```

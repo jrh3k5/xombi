@@ -12,7 +12,20 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest
+            tag: xombi:test-amd64
+            container_name: xombi-test-amd64
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            tag: xombi:test-arm64
+            container_name: xombi-test-arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v3
 
@@ -30,51 +43,46 @@ jobs:
           XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true
           EOF
 
-      - name: Build Docker image
-        run: docker build -t xombi:test .
+      - name: Build image
+        run: |
+          docker build -t ${{ matrix.tag }} .
 
       - name: Start Docker container
         run: |
-          # Start container in detached mode with a timeout
-          docker run -d --name xombi-test \
+          docker run -d --name ${{ matrix.container_name }} \
             --env-file .env \
-            xombi:test
+            ${{ matrix.tag }}
 
-          # Wait for container to start (max 30 seconds)
           echo "Waiting for container to start..."
           for i in {1..30}; do
-            if docker ps | grep -q xombi-test; then
+            if docker ps | grep -q ${{ matrix.container_name }}; then
               echo "Container started successfully"
               break
             fi
             sleep 1
           done
 
-          # Give the app time to initialize and show any startup errors
           sleep 10
 
-          # Check if container is still running
-          if ! docker ps | grep -q xombi-test; then
+          if ! docker ps | grep -q ${{ matrix.container_name }}; then
             echo "❌ Container failed to stay running"
             echo "Container logs:"
-            docker logs xombi-test
+            docker logs ${{ matrix.container_name }}
             exit 1
           fi
 
-          # Check logs for successful initialization or errors
-          echo "📋 Container logs:"
-          docker logs xombi-test
+          echo "📋 Container logs (${{ matrix.arch }}):"
+          docker logs ${{ matrix.container_name }}
 
-          if ! docker logs xombi-test 2>&1 | grep -q "Agent initialized on 0x936EccC64dB246f93D172Fd1acA534Ca7153C877"; then
-            echo "⚠️  Warning: Could not confirm application initialization"
-            echo "Container is running but application may not have started correctly"
+          if ! docker logs ${{ matrix.container_name }} 2>&1 | grep -q "Agent initialized on 0x936EccC64dB246f93D172Fd1acA534Ca7153C877"; then
+            echo "⚠️  Warning: Could not confirm application initialization on ${{ matrix.arch }}"
             exit 1
           fi
 
-          echo "✅ Container and application are running successfully"
+          echo "✅ ${{ matrix.arch }} container and application are running successfully"
 
       - name: Cleanup
         if: always()
         run: |
-          docker stop xombi-test || true
-          docker rm xombi-test || true
+          docker stop ${{ matrix.container_name }} || true
+          docker rm ${{ matrix.container_name }} || true

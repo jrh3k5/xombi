@@ -1,5 +1,5 @@
-# Force x64 architecture because XMTP's native bindings on ARM break on Raspberry Pi
-FROM --platform=linux/amd64 node:24
+# Base image; platform is selected by the builder (buildx can target amd64/arm64)
+FROM node:24
 
 WORKDIR /home/node/app
 RUN chmod 777 -R /home/node/app
