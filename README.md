@@ -21,8 +21,6 @@ Create a `.env` file with your configuration (see [Configuration](#configuration
 ```
 services:
   xombi:
-    # Request x64 architecture for compatibility with XMTP native bindings
-    platform: linux/amd64
     image: jrh3k5/xombi:latest
     user: "node"
     working_dir: /home/node/app
