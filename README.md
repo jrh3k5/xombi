@@ -42,6 +42,20 @@ docker compose up -d
 
 This will build and run the xombi service in a container.
 
+#### Upgrading
+
+If you wish to upgrade your instance of xombi in-place, run the following commands:
+
+```
+docker compose pull && docker compose up -d
+```
+
+You can also prune older images with:
+
+```
+docker image prune
+```
+
 ### Option 2: Manual Installation
 
 Within GitHub, click the green "Code" button and select the "Download ZIP" option.
