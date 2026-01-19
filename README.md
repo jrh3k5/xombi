@@ -23,12 +23,6 @@ services:
   xombi:
     image: jrh3k5/xombi:latest
     user: "node"
-    working_dir: /home/node/app
-    volumes:
-      - ./:/home/node/app
-      - /home/node/app/node_modules
-    environment:
-      XMTP_ENV: "production"
     env_file:
       - .env
     restart: unless-stopped
