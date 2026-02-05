@@ -221,7 +221,7 @@ VERSION=$(node -p "require('./package.json').version")
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t jrh3k5/xombi:latest \
-  -t jrh3k5/xombi:"$VERSION" \
+  -t jrh3k5/xombi:"v$VERSION" \
   --push \
   .
 ```
