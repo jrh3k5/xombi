@@ -137,6 +137,10 @@ export class XMTPClientFactory {
       console.log(
         `Using custom inbox nonce: ${clientNonce} (this may cause issues if not used carefully)`,
       );
+    } else {
+      console.log(
+        "No custom inbox nonce provided; using default behavior (random nonce will be used for inbox)",
+      );
     }
 
     const clientOptions: ClientOptions = {
