@@ -41,7 +41,10 @@ jobs:
           USERNAME_0x0000000000000000000000000000000000000001=testuser@example.com
           OMBI_XOMBI_WEBHOOK_ENABLED=false
           XMTP_REVOKE_ALL_OTHER_INSTALLATIONS=true
+          XMTP_INBOX_NONCE="$(date +%s)"
           EOF
+
+          echo "XMTP_INBOX_NONCE=$(date +%s)" >> .env
 
       - name: Build image
         run: |

@@ -27,6 +27,11 @@ export interface XMTPConfig {
    * installations in such cases.
    */
   autoRevokeInstallations?: boolean;
+  /**
+   * The nonce to use for the inbox when creating the XMTP client.
+   * This is optional and should only be used in specific cases where you need to set a custom nonce for the inbox.
+   */
+  inboxNonce?: bigint;
 }
 
 /**
@@ -88,14 +93,20 @@ export class XMTPClientFactory {
     const autoRevokeInstallations =
       process.env.XMTP_REVOKE_ALL_OTHER_INSTALLATIONS?.toLowerCase() === "true";
 
+    const inboxNonce = process.env.XMTP_INBOX_NONCE
+      ? BigInt(process.env.XMTP_INBOX_NONCE)
+      : undefined;
+
     const config: XMTPConfig = {
       signerKey,
       encryptionKey,
       environment,
       autoRevokeInstallations,
+      inboxNonce,
     };
 
     this.validateConfig(config);
+
     return config;
   }
 
@@ -124,6 +135,7 @@ export class XMTPClientFactory {
     const clientOptions: ClientOptions = {
       dbEncryptionKey: encryptionKeyBytes,
       env: config.environment,
+      nonce: config.inboxNonce,
     };
 
     const eoaSigner = await convertEOAToSigner(account, chain);
