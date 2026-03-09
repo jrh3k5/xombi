@@ -134,11 +134,11 @@ export class XMTPClientFactory {
 
     const clientNonce = config.inboxNonce;
     if (clientNonce !== undefined) {
-      console.log(
+      console.error(
         `Using custom inbox nonce: ${clientNonce} (this may cause issues if not used carefully)`,
       );
     } else {
-      console.log(
+      console.error(
         "No custom inbox nonce provided; using default behavior (random nonce will be used for inbox)",
       );
     }
