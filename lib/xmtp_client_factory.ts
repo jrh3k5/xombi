@@ -132,10 +132,17 @@ export class XMTPClientFactory {
     const chain: Chain =
       config.environment === "production" ? mainnet : sepolia;
 
+    const clientNonce = config.inboxNonce;
+    if (clientNonce !== undefined) {
+      console.log(
+        `Using custom inbox nonce: ${clientNonce} (this may cause issues if not used carefully)`,
+      );
+    }
+
     const clientOptions: ClientOptions = {
       dbEncryptionKey: encryptionKeyBytes,
       env: config.environment,
-      nonce: config.inboxNonce,
+      nonce: clientNonce,
     };
 
     const eoaSigner = await convertEOAToSigner(account, chain);
