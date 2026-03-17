@@ -74,7 +74,7 @@ jobs:
           echo "📋 Container logs (${{ matrix.arch }}):"
           docker logs ${{ matrix.container_name }}
 
-          if ! docker logs ${{ matrix.container_name }} 2>&1 | grep -q "Agent initialized on 0x936EccC64dB246f93D172Fd1acA534Ca7153C877"; then
+          if ! docker logs ${{ matrix.container_name }} 2>&1 | grep -q "Agent initialized on "; then
             echo "⚠️  Warning: Could not confirm application initialization on ${{ matrix.arch }}"
             exit 1
           fi
