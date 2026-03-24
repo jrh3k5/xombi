@@ -19,6 +19,6 @@ pkg=$(node -e "const pkg = require('./package.json'); pkg.version = '$new_versio
 echo "$pkg" > package.json
 
 # Update package-lock.json
-npm install
+npm ci
 
 echo "✅ Version updated to $new_version"
