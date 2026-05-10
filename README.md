@@ -1,3 +1,5 @@
+# This project has been [migrated to Codeberg](https://codeberg.org/jrh3k5/xombi)
+
 # xombi
 
 xombi (pronounced "zombie") is an XMTP bot that allows you to interface with your [Ombi](https://ombi.io/) instance.
